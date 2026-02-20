@@ -1,0 +1,3 @@
+Frontend URL: <replace-before-submission>
+# Optional (non-grading convenience):
+Backend API URL: <optional-backend-api-url>
