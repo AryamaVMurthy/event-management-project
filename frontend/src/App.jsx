@@ -11,6 +11,8 @@ import TicketDetails from './pages/TicketDetails';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminManageClubs from './pages/AdminManageClubs';
 import AdminPasswordResetRequests from './pages/AdminPasswordResetRequests';
+import AdminOrganizerEvents from './pages/AdminOrganizerEvents';
+import AdminEventParticipants from './pages/AdminEventParticipants';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import OrganizerCreateEvent from './pages/OrganizerCreateEvent';
 import OrganizerEventDetails from './pages/OrganizerEventDetails';
@@ -34,6 +36,8 @@ export default function App() {
           <Route path="/tickets/:ticketId" element={<ProtectedRoute allowedRoles={["IIIT_PARTICIPANT", "NON_IIIT_PARTICIPANT"]}><TicketDetails /></ProtectedRoute>} />
           <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/clubs" element={<ProtectedRoute allowedRoles={["admin"]}><AdminManageClubs /></ProtectedRoute>} />
+          <Route path="/admin/organizers/:organizerId/events" element={<ProtectedRoute allowedRoles={["admin"]}><AdminOrganizerEvents /></ProtectedRoute>} />
+          <Route path="/admin/events/:eventId/participants" element={<ProtectedRoute allowedRoles={["admin"]}><AdminEventParticipants /></ProtectedRoute>} />
           <Route path="/admin/password-reset-requests" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPasswordResetRequests /></ProtectedRoute>} />
           <Route path="/organizer/dashboard" element={<ProtectedRoute allowedRoles={["organizer"]}><OrganizerDashboard /></ProtectedRoute>} />
           <Route path="/organizer/events/new" element={<ProtectedRoute allowedRoles={["organizer"]}><OrganizerCreateEvent /></ProtectedRoute>} />

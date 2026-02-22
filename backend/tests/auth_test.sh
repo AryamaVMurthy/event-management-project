@@ -7,8 +7,29 @@
 # Make sure server is running on localhost:5000
 # ============================================
 
-BASE_URL="http://localhost:5000/api/auth"
-COOKIE_FILE="cookies.txt"
+set -u
+
+BASE_URL="${BASE_URL:-http://localhost:5000/api/auth}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/../.env"
+COOKIE_FILE="$SCRIPT_DIR/.auth_cookies.txt"
+
+if [ ! -f "$ENV_FILE" ]; then
+  echo "Missing backend .env at $ENV_FILE"
+  exit 1
+fi
+
+ADMIN_EMAIL="$(grep '^ADMIN_EMAIL=' "$ENV_FILE" | cut -d'=' -f2- | tr -d '\r')"
+ADMIN_PASSWORD="$(grep '^ADMIN_PASSWORD=' "$ENV_FILE" | cut -d'=' -f2- | tr -d '\r')"
+
+if [ -z "$ADMIN_EMAIL" ] || [ -z "$ADMIN_PASSWORD" ]; then
+  echo "ADMIN_EMAIL or ADMIN_PASSWORD missing in backend/.env"
+  exit 1
+fi
+
+STAMP="$(date +%s)"
+IIIT_EMAIL="auth.participant.${STAMP}@iiit.ac.in"
+NONIIIT_EMAIL="auth.external.${STAMP}@gmail.com"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -33,14 +54,7 @@ echo ""
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -c $COOKIE_FILE -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "teststudent@iiit.ac.in",
-    "password": "password123",
-    "firstName": "Test",
-    "lastName": "Student",
-    "contactNumber": "9876543210",
-    "participantType": "IIIT_PARTICIPANT"
-  }')
+  -d "{\"email\":\"$IIIT_EMAIL\",\"password\":\"password123\",\"firstName\":\"Test\",\"lastName\":\"Student\",\"contactNumber\":\"9876543210\",\"participantType\":\"IIIT_PARTICIPANT\"}")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
@@ -66,15 +80,7 @@ echo ""
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "external@gmail.com",
-    "password": "password123",
-    "firstName": "External",
-    "lastName": "User",
-    "contactNumber": "1234567890",
-    "participantType": "NON_IIIT_PARTICIPANT",
-    "collegeOrgName": "IIT Delhi"
-  }')
+  -d "{\"email\":\"$NONIIIT_EMAIL\",\"password\":\"password123\",\"firstName\":\"External\",\"lastName\":\"User\",\"contactNumber\":\"1234567890\",\"participantType\":\"NON_IIIT_PARTICIPANT\",\"collegeOrgName\":\"IIT Delhi\"}")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
@@ -132,14 +138,7 @@ echo ""
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "teststudent@iiit.ac.in",
-    "password": "password123",
-    "firstName": "Duplicate",
-    "lastName": "User",
-    "contactNumber": "9876543210",
-    "participantType": "IIIT_PARTICIPANT"
-  }')
+  -d "{\"email\":\"$IIIT_EMAIL\",\"password\":\"password123\",\"firstName\":\"Duplicate\",\"lastName\":\"User\",\"contactNumber\":\"9876543210\",\"participantType\":\"IIIT_PARTICIPANT\"}")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
@@ -164,10 +163,7 @@ echo ""
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -c $COOKIE_FILE -X POST "$BASE_URL/login" \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "teststudent@iiit.ac.in",
-    "password": "password123"
-  }')
+  -d "{\"email\":\"$IIIT_EMAIL\",\"password\":\"password123\"}")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
@@ -194,10 +190,7 @@ echo ""
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/login" \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "teststudent@iiit.ac.in",
-    "password": "wrongpassword"
-  }')
+  -d "{\"email\":\"$IIIT_EMAIL\",\"password\":\"wrongpassword\"}")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
@@ -222,10 +215,10 @@ echo ""
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/login" \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin-felicity@iiit.ac.in",
-    "password": "admin123"
-  }')
+  -d "{
+    \"email\": \"$ADMIN_EMAIL\",
+    \"password\": \"$ADMIN_PASSWORD\"
+  }")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
@@ -278,10 +271,7 @@ echo ""
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/login" \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "external@gmail.com",
-    "password": "password123"
-  }')
+  -d "{\"email\":\"$NONIIIT_EMAIL\",\"password\":\"password123\"}")
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
@@ -340,7 +330,3 @@ echo ""
 echo "============================================"
 echo "TEST SUITE COMPLETED"
 echo "============================================"
-echo ""
-echo "Note: To test protected routes, you need to"
-echo "add a /me endpoint in authRoutes.js first."
-echo ""

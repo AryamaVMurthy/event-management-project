@@ -1,19 +1,20 @@
 import express from "express";
 import { protect, restrictTo } from "../middleware/authMiddleware.js";
 import {
+  getAdminCategories,
   getAdminOrganizers,
   updateOrganizerStatus,
   deleteOrganizerPermanent,
   createAdminPasswordResetRequest,
   getAdminPasswordResetRequests,
   reviewAdminPasswordResetRequest,
-  getAdminCategories,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
 
 router.use(protect, restrictTo("admin"));
 
+router.get("/categories", getAdminCategories);
 router.get("/organizers", getAdminOrganizers);
 router.patch("/organizers/:id/status", updateOrganizerStatus);
 router.delete("/organizers/:id", deleteOrganizerPermanent);
@@ -24,7 +25,5 @@ router.patch(
   "/password-reset-requests/:id/review",
   reviewAdminPasswordResetRequest
 );
-
-router.get("/categories", getAdminCategories);
 
 export default router;

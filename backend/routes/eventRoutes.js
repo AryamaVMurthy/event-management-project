@@ -9,6 +9,7 @@ import {
   getEventDetails,
   registerForEvent,
   purchaseMerchandise,
+  listRegistrationFiles,
   downloadRegistrationFile,
   getOrganizerEvents,
   getOrganizerEventDetails,
@@ -27,11 +28,16 @@ import {
 
 const router = express.Router();
 
-router.get("/organizer/events", protect, restrictTo("organizer"), getOrganizerEvents);
+router.get(
+  "/organizer/events",
+  protect,
+  restrictTo("organizer", "admin"),
+  getOrganizerEvents
+);
 router.get(
   "/organizer/events/:id",
   protect,
-  restrictTo("organizer"),
+  restrictTo("organizer", "admin"),
   getOrganizerEventDetails
 );
 router.get(
@@ -43,7 +49,7 @@ router.get(
 router.get(
   "/organizer/events/:id/participants",
   protect,
-  restrictTo("organizer"),
+  restrictTo("organizer", "admin"),
   getOrganizerEventParticipants
 );
 router.patch(
@@ -64,6 +70,11 @@ router.get(
   protect,
   restrictTo("IIIT_PARTICIPANT", "NON_IIIT_PARTICIPANT"),
   listEvents
+);
+router.get(
+  "/registrations/:registrationId/files",
+  protect,
+  listRegistrationFiles
 );
 router.get(
   "/:id",

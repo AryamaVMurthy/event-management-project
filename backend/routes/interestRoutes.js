@@ -5,7 +5,7 @@ import {
   getAllInterests,
   createInterest,
   updateInterest,
-  deleteInterest
+  deleteInterest,
 } from "../controllers/interestController.js";
 
 const router = express.Router();

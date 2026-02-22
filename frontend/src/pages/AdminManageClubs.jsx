@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../lib/api";
 import AdminNavbar from "../components/AdminNavbar";
 import { Button } from "@/components/ui/button";
@@ -316,6 +317,11 @@ export default function AdminManageClubs() {
                       onClick={() => deleteOrganizer(organizer._id)}
                     >
                       Delete Permanently
+                    </Button>
+                    <Button asChild type="button" variant="outline">
+                      <Link to={`/admin/organizers/${organizer._id}/events`}>
+                        View Events
+                      </Link>
                     </Button>
                   </div>
                 </CardContent>

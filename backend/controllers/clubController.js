@@ -59,17 +59,6 @@ export const createCategory = async (req, res, next) => {
   }
 };
 
-export const getClubById = async (req, res, next) => {
-  try {
-    const club = await Organizer.findById(req.params.id)
-      .populate("category", "name description");
-    if (!club) return next(errors.notFound("Club not found"));
-    return res.status(200).json({ club });
-  } catch (err) {
-    return next(err);
-  }
-};
-
 export const getClubEventsPublic = async (req, res, next) => {
   try {
     const club = await Organizer.findById(req.params.id)
@@ -171,38 +160,6 @@ export const createClub = async (req, res, next) => {
         password: generatedPassword,
       },
     });
-  } catch (err) {
-    return next(err);
-  }
-};
-
-export const updateClub = async (req, res, next) => {
-  try {
-    const { organizerName, category, description, contactNumber } = req.body;
-    
-    if (category) {
-      const cat = await OrganizationCategory.findById(category);
-      if (!cat) return next(errors.notFound("Category not found"));
-    }
-    
-    const club = await Organizer.findByIdAndUpdate(
-      req.params.id,
-      { organizerName, category, description, contactNumber },
-      { new: true, runValidators: true }
-    ).populate("category", "name description");
-    
-    if (!club) return next(errors.notFound("Club not found"));
-    return res.status(200).json({ club });
-  } catch (err) {
-    return next(err);
-  }
-};
-
-export const deleteClub = async (req, res, next) => {
-  try {
-    const club = await Organizer.findByIdAndDelete(req.params.id);
-    if (!club) return next(errors.notFound("Club not found"));
-    return res.status(200).json({ message: "Club deleted" });
   } catch (err) {
     return next(err);
   }

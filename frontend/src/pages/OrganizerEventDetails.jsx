@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../lib/api";
 import OrganizerNavbar from "../components/OrganizerNavbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ const toLocal = (value) => {
 
 export default function OrganizerEventDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -32,6 +33,8 @@ export default function OrganizerEventDetails() {
     registrationLimit: "",
     tagsText: "",
   });
+  const [filesByRegistration, setFilesByRegistration] = useState({});
+  const [loadingFilesFor, setLoadingFilesFor] = useState("");
 
   const load = async (nextFilters = filters) => {
     setLoading(true);
@@ -47,6 +50,7 @@ export default function OrganizerEventDetails() {
       setEvent(loadedEvent);
       setAnalytics(analyticsRes.data?.analytics || null);
       setParticipants(participantsRes.data?.participants || []);
+      setFilesByRegistration({});
 
       if (loadedEvent) {
         setEditForm({
@@ -117,6 +121,61 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  const deleteDraftEvent = async () => {
+    if (!event || event.status !== "DRAFT") return;
+    const confirmed = window.confirm("Delete this draft event permanently?");
+    if (!confirmed) return;
+
+    try {
+      setError("");
+      setMessage("");
+      await api.delete(`/events/${id}`);
+      navigate("/organizer/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete draft event");
+    }
+  };
+
+  const loadFiles = async (registrationId) => {
+    setLoadingFilesFor(registrationId);
+    setError("");
+    setMessage("");
+    try {
+      const response = await api.get(`/events/registrations/${registrationId}/files`);
+      const files = response.data?.files || [];
+      setFilesByRegistration((prev) => ({
+        ...prev,
+        [registrationId]: files,
+      }));
+      if (files.length === 0) {
+        setMessage("No uploaded files found for this registration");
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load registration files");
+    } finally {
+      setLoadingFilesFor("");
+    }
+  };
+
+  const downloadFile = async (registrationId, fieldId, fileName) => {
+    setError("");
+    try {
+      const response = await api.get(`/events/files/${registrationId}/${fieldId}`, {
+        responseType: "blob",
+      });
+      const blobUrl = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName || "download";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to download file");
+    }
+  };
+
   const updateAttendance = async (registrationId, attended) => {
     try {
       await api.patch(`/events/organizer/events/${id}/participants/${registrationId}/attendance`, {
@@ -171,6 +230,11 @@ export default function OrganizerEventDetails() {
               <p>Start: {toLocal(event.startDate)}</p>
               <p>End: {toLocal(event.endDate)}</p>
               <p>Description: {event.description}</p>
+              {event.status === "DRAFT" ? (
+                <Button type="button" variant="outline" onClick={deleteDraftEvent}>
+                  Delete Draft
+                </Button>
+              ) : null}
               {lifecycleActions.map((action) => (
                 <Button
                   key={action.endpoint}
@@ -328,6 +392,42 @@ export default function OrganizerEventDetails() {
                   <p>Status: {participant.participationStatus}</p>
                   <p>Attendance: {participant.attended ? "Present" : "Absent"}</p>
                   <p>Ticket ID: {participant.ticketId || "-"}</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => loadFiles(participant.registrationId)}
+                    disabled={loadingFilesFor === participant.registrationId}
+                  >
+                    {loadingFilesFor === participant.registrationId
+                      ? "Loading Files..."
+                      : "View Uploaded Files"}
+                  </Button>
+                  {Array.isArray(filesByRegistration[participant.registrationId]) ? (
+                    filesByRegistration[participant.registrationId].length === 0 ? (
+                      <p>No uploaded files.</p>
+                    ) : (
+                      filesByRegistration[participant.registrationId].map((file) => (
+                        <div key={`${participant.registrationId}-${file.fieldId}`}>
+                          <p>
+                            {file.label}: {file.fileName || "-"}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() =>
+                              downloadFile(
+                                participant.registrationId,
+                                file.fieldId,
+                                file.fileName || `${file.fieldId}.bin`
+                              )
+                            }
+                          >
+                            Download
+                          </Button>
+                        </div>
+                      ))
+                    )
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"

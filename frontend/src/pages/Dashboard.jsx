@@ -25,6 +25,8 @@ export default function Dashboard() {
     cancelledRejected: [],
   });
   const [activeTab, setActiveTab] = useState("normal");
+  const [filesByRegistration, setFilesByRegistration] = useState({});
+  const [loadingFilesFor, setLoadingFilesFor] = useState("");
 
   useEffect(() => {
     const loadMyEvents = async () => {
@@ -69,6 +71,41 @@ export default function Dashboard() {
 
   const activeHistoryRows = history?.[activeTab] || [];
 
+  const loadFiles = async (registrationId) => {
+    setLoadingFilesFor(registrationId);
+    setError("");
+    try {
+      const response = await api.get(`/events/registrations/${registrationId}/files`);
+      setFilesByRegistration((prev) => ({
+        ...prev,
+        [registrationId]: response.data?.files || [],
+      }));
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load uploaded files");
+    } finally {
+      setLoadingFilesFor("");
+    }
+  };
+
+  const downloadFile = async (registrationId, fieldId, fileName) => {
+    setError("");
+    try {
+      const response = await api.get(`/events/files/${registrationId}/${fieldId}`, {
+        responseType: "blob",
+      });
+      const blobUrl = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName || "download";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to download file");
+    }
+  };
+
   const renderRecord = (record) => (
     <Card key={record.registrationId}>
       <CardHeader>
@@ -92,6 +129,42 @@ export default function Dashboard() {
             "-"
           )}
         </p>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => loadFiles(record.registrationId)}
+          disabled={loadingFilesFor === record.registrationId}
+        >
+          {loadingFilesFor === record.registrationId
+            ? "Loading Files..."
+            : "View Uploaded Files"}
+        </Button>
+        {Array.isArray(filesByRegistration[record.registrationId]) ? (
+          filesByRegistration[record.registrationId].length === 0 ? (
+            <p>No uploaded files.</p>
+          ) : (
+            filesByRegistration[record.registrationId].map((file) => (
+              <div key={`${record.registrationId}-${file.fieldId}`}>
+                <p>
+                  {file.label}: {file.fileName || "-"}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    downloadFile(
+                      record.registrationId,
+                      file.fieldId,
+                      file.fileName || `${file.fieldId}.bin`
+                    )
+                  }
+                >
+                  Download
+                </Button>
+              </div>
+            ))
+          )
+        ) : null}
       </CardContent>
     </Card>
   );

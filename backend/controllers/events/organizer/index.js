@@ -1,19 +1,17 @@
 export {
-  listEvents,
-  getEventDetails,
-  registerForEvent,
-  purchaseMerchandise,
-  listRegistrationFiles,
-  downloadRegistrationFile,
-} from "./events/participantEventController.js";
-
-export {
   getOrganizerEvents,
   getOrganizerEventDetails,
-  getOrganizerEventAnalytics,
+} from "./listAndDetailsController.js";
+
+export { getOrganizerEventAnalytics } from "./analyticsController.js";
+
+export {
   getOrganizerEventParticipants,
   updateParticipantAttendance,
   exportOrganizerEventParticipants,
+} from "./participantsController.js";
+
+export {
   createEvent,
   updateEvent,
   deleteEvent,
@@ -21,4 +19,4 @@ export {
   startEvent,
   closeEvent,
   completeEvent,
-} from "./events/organizerEventController.js";
+} from "./lifecycleController.js";

@@ -10,7 +10,12 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "check:controller-size": "node scripts/check-controller-size.mjs --max 240",
+    "check:controllers": "npm run check:controller-size"
+  },
+  "engines": {
+    "node": ">=22 <23"
   },
   "keywords": [],
   "author": "",
