@@ -46,22 +46,5 @@ npm install
 npm run dev
 ```
 
-## Test Commands
-1. Advanced workflow:
-```bash
-bash backend/tests/advanced/advanced_workflow_test.sh
-```
-2. Regression suites:
-```bash
-bash backend/tests/auth_test.sh
-bash backend/tests/event_test.sh
-bash backend/tests/organizer_section10_test.sh
-bash backend/tests/admin_section11_test.sh
-bash backend/tests/event_email_failure_test.sh
-bash backend/tests/draft_and_file_access_test.sh
-```
-
 ## Evidence Docs
-1. `docs/advanced/issue-index.md`
-2. `docs/advanced/api-contracts.md`
-3. `docs/advanced/test-plan.md`
+1. `docs/advanced/api-contracts.md`
