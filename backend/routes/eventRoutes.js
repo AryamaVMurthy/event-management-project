@@ -2,6 +2,7 @@ import express from "express";
 import { protect, restrictTo } from "../middleware/authMiddleware.js";
 import {
   uploadRegistrationFiles,
+  uploadPaymentProof,
   handleUploadError,
 } from "../middleware/uploadMiddleware.js";
 import {
@@ -11,10 +12,17 @@ import {
   purchaseMerchandise,
   listRegistrationFiles,
   downloadRegistrationFile,
+  uploadPaymentProof as uploadPaymentProofHandler,
+  getPaymentProof,
   getOrganizerEvents,
   getOrganizerEventDetails,
   getOrganizerEventAnalytics,
   getOrganizerEventParticipants,
+  scanAttendanceByQr,
+  manualAttendanceOverride,
+  getLiveAttendanceSummary,
+  listMerchOrdersForOrganizerEvent,
+  reviewMerchOrderForOrganizerEvent,
   updateParticipantAttendance,
   exportOrganizerEventParticipants,
   createEvent,
@@ -52,6 +60,36 @@ router.get(
   restrictTo("organizer", "admin"),
   getOrganizerEventParticipants
 );
+router.get(
+  "/organizer/events/:id/attendance/live",
+  protect,
+  restrictTo("organizer", "admin"),
+  getLiveAttendanceSummary
+);
+router.post(
+  "/organizer/events/:id/attendance/scan",
+  protect,
+  restrictTo("organizer", "admin"),
+  scanAttendanceByQr
+);
+router.post(
+  "/organizer/events/:id/attendance/override",
+  protect,
+  restrictTo("organizer", "admin"),
+  manualAttendanceOverride
+);
+router.get(
+  "/organizer/events/:id/merch-orders",
+  protect,
+  restrictTo("organizer", "admin"),
+  listMerchOrdersForOrganizerEvent
+);
+router.patch(
+  "/organizer/events/:id/merch-orders/:registrationId/review",
+  protect,
+  restrictTo("organizer", "admin"),
+  reviewMerchOrderForOrganizerEvent
+);
 router.patch(
   "/organizer/events/:id/participants/:registrationId/attendance",
   protect,
@@ -75,6 +113,19 @@ router.get(
   "/registrations/:registrationId/files",
   protect,
   listRegistrationFiles
+);
+router.get(
+  "/registrations/:registrationId/payment-proof",
+  protect,
+  getPaymentProof
+);
+router.post(
+  "/registrations/:registrationId/payment-proof",
+  protect,
+  restrictTo("IIIT_PARTICIPANT", "NON_IIIT_PARTICIPANT"),
+  uploadPaymentProof,
+  handleUploadError,
+  uploadPaymentProofHandler
 );
 router.get(
   "/:id",

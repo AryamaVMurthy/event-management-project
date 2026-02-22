@@ -1,6 +1,17 @@
 import mongoose from "mongoose";
 import { z } from "zod";
-import { REGISTRATION_STATUSES } from "./constants.js";
+import { MERCH_PAYMENT_STATUSES, REGISTRATION_STATUSES } from "./constants.js";
+
+const merchPaymentProofSchema = new mongoose.Schema(
+  {
+    fileId: { type: String, trim: true },
+    fileName: { type: String, trim: true },
+    mimeType: { type: String, trim: true },
+    size: { type: Number, min: 0 },
+    uploadedAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
 
 const merchandisePurchaseSchema = new mongoose.Schema(
   {
@@ -9,6 +20,21 @@ const merchandisePurchaseSchema = new mongoose.Schema(
     quantity: { type: Number, min: 1 },
     unitPrice: { type: Number, min: 0 },
     totalAmount: { type: Number, min: 0 },
+    paymentStatus: {
+      type: String,
+      enum: MERCH_PAYMENT_STATUSES,
+      default: "PAYMENT_PENDING",
+      required: true,
+    },
+    paymentProof: { type: merchPaymentProofSchema, default: null },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    reviewedAt: { type: Date, default: null },
+    reviewComment: { type: String, trim: true },
+    finalizedAt: { type: Date, default: null },
   },
   { _id: false }
 );
@@ -54,6 +80,7 @@ registrationSchema.index({ eventId: 1, status: 1 });
 registrationSchema.index({ participantId: 1, registeredAt: -1 });
 registrationSchema.index({ status: 1, registeredAt: -1 });
 registrationSchema.index({ eventId: 1, attended: 1 });
+registrationSchema.index({ eventId: 1, "merchPurchase.paymentStatus": 1 });
 
 const Registration = mongoose.model("Registration", registrationSchema);
 
@@ -68,6 +95,23 @@ const merchPurchaseZodSchema = z.object({
   quantity: z.number().int().min(1),
   unitPrice: z.number().min(0),
   totalAmount: z.number().min(0),
+  paymentStatus: z
+    .enum(MERCH_PAYMENT_STATUSES)
+    .optional()
+    .default("PAYMENT_PENDING"),
+  paymentProof: z
+    .object({
+      fileId: z.string().trim().min(1),
+      fileName: z.string().trim().min(1),
+      mimeType: z.string().trim().min(1),
+      size: z.number().min(0).optional(),
+      uploadedAt: z.coerce.date().optional(),
+    })
+    .optional(),
+  reviewedBy: objectIdSchema.optional(),
+  reviewedAt: z.coerce.date().nullable().optional(),
+  reviewComment: z.string().trim().optional(),
+  finalizedAt: z.coerce.date().nullable().optional(),
 });
 
 const registrationZodSchema = z.object({

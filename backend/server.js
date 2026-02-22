@@ -10,6 +10,7 @@ import userRoutes from "./routes/userRoutes.js";
 import interestRoutes from "./routes/interestRoutes.js";
 import clubRoutes from "./routes/clubRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
+import calendarRoutes from "./routes/calendarRoutes.js";
 import ticketRoutes from "./routes/ticketRoutes.js";
 import systemRoutes from "./routes/systemRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -32,6 +33,7 @@ app.use("/api/user", userRoutes)
 app.use("/api/interests", interestRoutes);
 app.use("/api/clubs", clubRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/calendar", calendarRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/system", systemRoutes);
 app.use("/api/admin", adminRoutes);

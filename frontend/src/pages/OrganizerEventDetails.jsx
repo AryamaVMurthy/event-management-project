@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../lib/api";
 import OrganizerNavbar from "../components/OrganizerNavbar";
@@ -26,7 +26,9 @@ export default function OrganizerEventDetails() {
   const [event, setEvent] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [participants, setParticipants] = useState([]);
+  const [merchOrders, setMerchOrders] = useState([]);
   const [filters, setFilters] = useState({ search: "", status: "", attendance: "" });
+  const [merchStatusFilter, setMerchStatusFilter] = useState("ALL");
   const [editForm, setEditForm] = useState({
     description: "",
     registrationDeadline: "",
@@ -35,6 +37,25 @@ export default function OrganizerEventDetails() {
   });
   const [filesByRegistration, setFilesByRegistration] = useState({});
   const [loadingFilesFor, setLoadingFilesFor] = useState("");
+  const [loadingMerchOrders, setLoadingMerchOrders] = useState(false);
+  const [downloadingPaymentProofFor, setDownloadingPaymentProofFor] = useState("");
+  const [reviewCommentByOrder, setReviewCommentByOrder] = useState({});
+  const [reviewingOrderFor, setReviewingOrderFor] = useState("");
+  const [activePanel, setActivePanel] = useState("participants");
+  const [scanPayloadText, setScanPayloadText] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const [liveSummary, setLiveSummary] = useState(null);
+  const [loadingLiveSummary, setLoadingLiveSummary] = useState(false);
+  const [manualOverrideForm, setManualOverrideForm] = useState({
+    registrationId: "",
+    attended: "true",
+    reason: "",
+  });
+  const [cameraActive, setCameraActive] = useState(false);
+  const [decodingImage, setDecodingImage] = useState(false);
+  const videoRef = useRef(null);
+  const cameraStreamRef = useRef(null);
+  const cameraPollTimerRef = useRef(null);
 
   const load = async (nextFilters = filters) => {
     setLoading(true);
@@ -51,6 +72,14 @@ export default function OrganizerEventDetails() {
       setAnalytics(analyticsRes.data?.analytics || null);
       setParticipants(participantsRes.data?.participants || []);
       setFilesByRegistration({});
+      if (loadedEvent?.type === "MERCHANDISE") {
+        const ordersRes = await api.get(`/events/organizer/events/${id}/merch-orders`, {
+          params: { paymentStatus: merchStatusFilter },
+        });
+        setMerchOrders(ordersRes.data?.orders || []);
+      } else {
+        setMerchOrders([]);
+      }
 
       if (loadedEvent) {
         setEditForm({
@@ -74,9 +103,55 @@ export default function OrganizerEventDetails() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  useEffect(() => {
+    if (activePanel !== "scanner") return undefined;
+    let cancelled = false;
+
+    const poll = async () => {
+      if (cancelled) return;
+      await fetchLiveAttendanceSummary();
+    };
+
+    poll();
+    const timer = setInterval(poll, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePanel, id]);
+
+  useEffect(
+    () => () => {
+      stopCameraScanner();
+    },
+    []
+  );
+
   const applyParticipantFilters = async (evt) => {
     evt.preventDefault();
     await load(filters);
+  };
+
+  const loadMerchOrders = async (nextStatus = merchStatusFilter) => {
+    if (!event || event.type !== "MERCHANDISE") {
+      setMerchOrders([]);
+      return;
+    }
+
+    setLoadingMerchOrders(true);
+    setError("");
+    try {
+      const response = await api.get(`/events/organizer/events/${id}/merch-orders`, {
+        params: { paymentStatus: nextStatus },
+      });
+      setMerchOrders(response.data?.orders || []);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load merchandise orders");
+    } finally {
+      setLoadingMerchOrders(false);
+    }
   };
 
   const lifecycleActions = useMemo(() => {
@@ -176,6 +251,211 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  const downloadPaymentProof = async (registrationId, fileName) => {
+    setDownloadingPaymentProofFor(registrationId);
+    setError("");
+    try {
+      const response = await api.get(
+        `/events/registrations/${registrationId}/payment-proof?download=true`,
+        {
+          responseType: "blob",
+        }
+      );
+      const blobUrl = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName || `payment-proof-${registrationId}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to download payment proof");
+    } finally {
+      setDownloadingPaymentProofFor("");
+    }
+  };
+
+  const reviewMerchOrder = async (registrationId, status) => {
+    setReviewingOrderFor(registrationId);
+    setError("");
+    setMessage("");
+    try {
+      const reviewComment = reviewCommentByOrder[registrationId] || "";
+      const response = await api.patch(
+        `/events/organizer/events/${id}/merch-orders/${registrationId}/review`,
+        {
+          status,
+          reviewComment,
+        }
+      );
+      setMessage(response.data?.message || "Order reviewed");
+      await load(filters);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to review merchandise order");
+    } finally {
+      setReviewingOrderFor("");
+    }
+  };
+
+  const fetchLiveAttendanceSummary = async () => {
+    if (!event) return;
+    setLoadingLiveSummary(true);
+    try {
+      const response = await api.get(`/events/organizer/events/${id}/attendance/live`);
+      setLiveSummary(response.data?.summary || null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load live attendance summary");
+    } finally {
+      setLoadingLiveSummary(false);
+    }
+  };
+
+  const submitScanPayload = async (rawPayload = scanPayloadText) => {
+    const payloadText = String(rawPayload || "").trim();
+    if (!payloadText) {
+      setError("Decoded QR payload is required");
+      return;
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(payloadText);
+    } catch {
+      setError("Decoded QR payload must be valid JSON");
+      return;
+    }
+
+    setScanning(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await api.post(`/events/organizer/events/${id}/attendance/scan`, {
+        qrPayload: payload,
+      });
+      setMessage(response.data?.message || "Attendance scanned");
+      await load(filters);
+      await fetchLiveAttendanceSummary();
+    } catch (err) {
+      setError(err.response?.data?.message || "QR scan failed");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const decodeQrFromImage = async (file) => {
+    if (!file) {
+      setError("Select an image to decode QR");
+      return;
+    }
+    if (typeof window === "undefined" || !window.BarcodeDetector) {
+      setError("BarcodeDetector API is not supported in this browser");
+      return;
+    }
+
+    setDecodingImage(true);
+    setError("");
+    try {
+      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+      const bitmap = await createImageBitmap(file);
+      const results = await detector.detect(bitmap);
+      if (!results || results.length === 0 || !results[0].rawValue) {
+        setError("No QR code detected in selected image");
+        return;
+      }
+      setScanPayloadText(results[0].rawValue);
+      setMessage("QR payload decoded from image");
+    } catch (err) {
+      setError(err.message || "Failed to decode QR from image");
+    } finally {
+      setDecodingImage(false);
+    }
+  };
+
+  const stopCameraScanner = () => {
+    if (cameraPollTimerRef.current) {
+      clearInterval(cameraPollTimerRef.current);
+      cameraPollTimerRef.current = null;
+    }
+    if (cameraStreamRef.current) {
+      for (const track of cameraStreamRef.current.getTracks()) {
+        track.stop();
+      }
+      cameraStreamRef.current = null;
+    }
+    setCameraActive(false);
+  };
+
+  const startCameraScanner = async () => {
+    if (typeof window === "undefined" || !window.BarcodeDetector) {
+      setError("BarcodeDetector API is not supported in this browser");
+      return;
+    }
+
+    setError("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+      });
+      cameraStreamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+      setCameraActive(true);
+
+      cameraPollTimerRef.current = setInterval(async () => {
+        if (!videoRef.current || videoRef.current.readyState < 2) return;
+        try {
+          const results = await detector.detect(videoRef.current);
+          if (results && results.length > 0 && results[0].rawValue) {
+            const rawValue = results[0].rawValue;
+            setScanPayloadText(rawValue);
+            stopCameraScanner();
+            await submitScanPayload(rawValue);
+          }
+        } catch (err) {
+          setError(err.message || "Camera QR scan failed");
+          stopCameraScanner();
+        }
+      }, 800);
+    } catch (err) {
+      setError(err.message || "Unable to start camera scanner");
+      stopCameraScanner();
+    }
+  };
+
+  const submitManualOverride = async (eventObj) => {
+    eventObj.preventDefault();
+    const registrationId = manualOverrideForm.registrationId.trim();
+    const reason = manualOverrideForm.reason.trim();
+
+    if (!registrationId) {
+      setError("registrationId is required for manual override");
+      return;
+    }
+    if (!reason) {
+      setError("Reason is required for manual override");
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    try {
+      const response = await api.post(`/events/organizer/events/${id}/attendance/override`, {
+        registrationId,
+        attended: manualOverrideForm.attended === "true",
+        reason,
+      });
+      setMessage(response.data?.message || "Manual override applied");
+      await load(filters);
+      await fetchLiveAttendanceSummary();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to apply manual override");
+    }
+  };
+
   const updateAttendance = async (registrationId, attended) => {
     try {
       await api.patch(`/events/organizer/events/${id}/participants/${registrationId}/attendance`, {
@@ -201,6 +481,14 @@ export default function OrganizerEventDetails() {
     { label: "All attendance", value: "__all__" },
     { label: "Present", value: "present" },
     { label: "Absent", value: "absent" },
+  ];
+
+  const merchPaymentStatuses = [
+    { label: "All payment statuses", value: "ALL" },
+    { label: "Payment Pending", value: "PAYMENT_PENDING" },
+    { label: "Pending Approval", value: "PENDING_APPROVAL" },
+    { label: "Approved", value: "APPROVED" },
+    { label: "Rejected", value: "REJECTED" },
   ];
 
   return (
@@ -316,6 +604,276 @@ export default function OrganizerEventDetails() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Attendance Tools</CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-2">
+          <Button
+            type="button"
+            variant={activePanel === "participants" ? "default" : "outline"}
+            onClick={() => setActivePanel("participants")}
+          >
+            Participants Table
+          </Button>
+          <Button
+            type="button"
+            variant={activePanel === "scanner" ? "default" : "outline"}
+            onClick={() => setActivePanel("scanner")}
+          >
+            QR Scanner + Live
+          </Button>
+        </CardContent>
+      </Card>
+
+      {event?.type === "MERCHANDISE" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Merchandise Orders</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <Label>Payment Status Filter</Label>
+              <Select
+                value={merchStatusFilter}
+                onValueChange={(value) => setMerchStatusFilter(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {merchPaymentStatuses.map((entry) => (
+                    <SelectItem key={entry.value} value={entry.value}>
+                      {entry.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => loadMerchOrders(merchStatusFilter)}
+                disabled={loadingMerchOrders}
+              >
+                {loadingMerchOrders ? "Loading..." : "Apply Order Filter"}
+              </Button>
+            </div>
+
+            {merchOrders.length === 0 ? (
+              <p>No merchandise orders found.</p>
+            ) : (
+              merchOrders.map((order) => (
+                <Card key={order.registrationId}>
+                  <CardContent className="space-y-1 pt-4">
+                    <p>Name: {order.participant?.name || "-"}</p>
+                    <p>Email: {order.participant?.email || "-"}</p>
+                    <p>Status: {order.paymentStatus}</p>
+                    <p>Quantity: {order.quantity}</p>
+                    <p>Total Amount: Rs. {order.totalAmount}</p>
+                    <p>Item ID: {order.itemId || "-"}</p>
+                    <p>Variant ID: {order.variantId || "-"}</p>
+                    <p>Proof Uploaded At: {toLocal(order.paymentProof?.uploadedAt)}</p>
+                    <p>Review Comment: {order.reviewComment || "-"}</p>
+                    {order.paymentStatus === "PENDING_APPROVAL" ? (
+                      <Input
+                        value={reviewCommentByOrder[order.registrationId] || ""}
+                        placeholder="Optional review comment"
+                        onChange={(event) =>
+                          setReviewCommentByOrder((prev) => ({
+                            ...prev,
+                            [order.registrationId]: event.target.value,
+                          }))
+                        }
+                      />
+                    ) : null}
+                    {order.paymentProof ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          downloadPaymentProof(
+                            order.registrationId,
+                            order.paymentProof?.fileName || "payment-proof"
+                          )
+                        }
+                        disabled={downloadingPaymentProofFor === order.registrationId}
+                      >
+                        {downloadingPaymentProofFor === order.registrationId
+                          ? "Downloading..."
+                          : "Download Payment Proof"}
+                      </Button>
+                    ) : (
+                      <p>No payment proof uploaded.</p>
+                    )}
+                    {order.paymentStatus === "PENDING_APPROVAL" ? (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => reviewMerchOrder(order.registrationId, "APPROVED")}
+                          disabled={reviewingOrderFor === order.registrationId}
+                        >
+                          {reviewingOrderFor === order.registrationId ? "Saving..." : "Approve"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => reviewMerchOrder(order.registrationId, "REJECTED")}
+                          disabled={reviewingOrderFor === order.registrationId}
+                        >
+                          {reviewingOrderFor === order.registrationId ? "Saving..." : "Reject"}
+                        </Button>
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {activePanel === "scanner" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>QR Scanner + Manual Override</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="decoded-qr-payload">Decoded QR Payload (JSON)</Label>
+              <Input
+                id="decoded-qr-payload"
+                value={scanPayloadText}
+                onChange={(eventObj) => setScanPayloadText(eventObj.target.value)}
+                placeholder='{"ticketId":"...","registrationId":"...","participantId":"...","eventId":"..."}'
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => submitScanPayload(scanPayloadText)}
+                  disabled={scanning}
+                >
+                  {scanning ? "Scanning..." : "Scan Decoded Payload"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={startCameraScanner}
+                  disabled={cameraActive}
+                >
+                  Start Camera Decode
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={stopCameraScanner}
+                  disabled={!cameraActive}
+                >
+                  Stop Camera
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="qr-image-upload">Decode From Image</Label>
+              <Input
+                id="qr-image-upload"
+                type="file"
+                accept="image/*"
+                onChange={(eventObj) =>
+                  decodeQrFromImage(eventObj.target.files?.[0] || null)
+                }
+              />
+              <p>{decodingImage ? "Decoding image..." : "Upload an image containing QR code."}</p>
+            </div>
+
+            <video ref={videoRef} className={cameraActive ? "w-full max-w-md" : "hidden"} autoPlay muted />
+
+            <form onSubmit={submitManualOverride} className="space-y-2">
+              <Label>Manual Override</Label>
+              <Select
+                value={manualOverrideForm.registrationId || "__none__"}
+                onValueChange={(value) =>
+                  setManualOverrideForm((prev) => ({
+                    ...prev,
+                    registrationId: value === "__none__" ? "" : value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select registration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Select registration</SelectItem>
+                  {participants.map((participant) => (
+                    <SelectItem
+                      key={participant.registrationId}
+                      value={participant.registrationId}
+                    >
+                      {participant.participantName} ({participant.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={manualOverrideForm.attended}
+                onValueChange={(value) =>
+                  setManualOverrideForm((prev) => ({ ...prev, attended: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Mark Present</SelectItem>
+                  <SelectItem value="false">Mark Absent</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Input
+                value={manualOverrideForm.reason}
+                placeholder="Reason for manual override"
+                onChange={(eventObj) =>
+                  setManualOverrideForm((prev) => ({
+                    ...prev,
+                    reason: eventObj.target.value,
+                  }))
+                }
+              />
+              <Button type="submit" variant="outline">
+                Submit Manual Override
+              </Button>
+            </form>
+
+            <div className="space-y-2">
+              <p>
+                {loadingLiveSummary
+                  ? "Refreshing live summary..."
+                  : "Live summary auto-refreshes every 5 seconds."}
+              </p>
+              <p>Total Registrations: {liveSummary?.totalRegistrations ?? "-"}</p>
+              <p>Attended: {liveSummary?.attendedCount ?? "-"}</p>
+              <p>Unattended: {liveSummary?.unattendedCount ?? "-"}</p>
+              <div className="space-y-1">
+                <Label>Recent Audit Logs</Label>
+                {Array.isArray(liveSummary?.recentLogs) && liveSummary.recentLogs.length > 0 ? (
+                  liveSummary.recentLogs.map((log) => (
+                    <p key={log.id}>
+                      {toLocal(log.occurredAt)} | {log.action} | {log.reason || "-"}
+                    </p>
+                  ))
+                ) : (
+                  <p>No audit logs yet.</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {activePanel === "participants" ? (
       <Card>
         <CardHeader>
           <CardTitle>Participants</CardTitle>
@@ -441,6 +999,7 @@ export default function OrganizerEventDetails() {
           )}
         </CardContent>
       </Card>
+      ) : null}
     </div>
   );
 }

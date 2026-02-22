@@ -39,3 +39,10 @@ export const FORM_FIELD_TYPES = [
   "checkbox",
   "file",
 ];
+
+export const MERCH_PAYMENT_STATUSES = [
+  "PAYMENT_PENDING",
+  "PENDING_APPROVAL",
+  "APPROVED",
+  "REJECTED",
+];

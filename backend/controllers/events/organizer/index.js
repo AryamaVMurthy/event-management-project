@@ -12,6 +12,12 @@ export {
 } from "./participantsController.js";
 
 export {
+  scanAttendanceByQr,
+  manualAttendanceOverride,
+  getLiveAttendanceSummary,
+} from "./attendanceScannerController.js";
+
+export {
   createEvent,
   updateEvent,
   deleteEvent,
@@ -20,3 +26,9 @@ export {
   closeEvent,
   completeEvent,
 } from "./lifecycleController.js";
+
+export {
+  listMerchOrdersForOrganizerEvent,
+  getMerchOrderForOrganizerOrAdmin,
+  reviewMerchOrderForOrganizerEvent,
+} from "./merchApprovalController.js";

@@ -5,6 +5,8 @@ export {
   purchaseMerchandise,
   listRegistrationFiles,
   downloadRegistrationFile,
+  uploadPaymentProof,
+  getPaymentProof,
 } from "./events/participant/index.js";
 
 export {
@@ -12,6 +14,9 @@ export {
   getOrganizerEventDetails,
   getOrganizerEventAnalytics,
   getOrganizerEventParticipants,
+  scanAttendanceByQr,
+  manualAttendanceOverride,
+  getLiveAttendanceSummary,
   updateParticipantAttendance,
   exportOrganizerEventParticipants,
   createEvent,
@@ -21,4 +26,6 @@ export {
   startEvent,
   closeEvent,
   completeEvent,
+  listMerchOrdersForOrganizerEvent,
+  reviewMerchOrderForOrganizerEvent,
 } from "./events/organizer/index.js";

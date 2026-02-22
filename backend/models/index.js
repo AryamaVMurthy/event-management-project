@@ -4,3 +4,4 @@ export * from "./Event.js";
 export * from "./Registration.js";
 export * from "./Ticket.js";
 export * from "./PasswordResetRequest.js";
+export * from "./AttendanceAuditLog.js";

@@ -6,7 +6,9 @@ import {
   updateProfile,
   updateInterests,
   updateFollowedClubs,
-  changePassword
+  changePassword,
+  createOrganizerPasswordResetRequest,
+  getOrganizerPasswordResetRequests,
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -18,5 +20,15 @@ router.put("/profile", protect, updateProfile);
 router.put("/interests", protect, updateInterests);
 router.put("/followed-clubs", protect, updateFollowedClubs);
 router.put("/password", protect, changePassword);
+router.post(
+  "/password-reset-requests",
+  protect,
+  createOrganizerPasswordResetRequest
+);
+router.get(
+  "/password-reset-requests",
+  protect,
+  getOrganizerPasswordResetRequests
+);
 
 export default router;

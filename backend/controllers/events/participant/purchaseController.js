@@ -1,5 +1,4 @@
 import { Registration } from "../../../models/Registration.js";
-import { Ticket } from "../../../models/Ticket.js";
 import { errors } from "../../../utils/Errors.js";
 import {
   handleControllerError,
@@ -9,9 +8,7 @@ import {
   assertParticipantEligibility,
   assertCapacityAvailable,
   assertNoExistingRegistration,
-  createTicketForRegistration,
 } from "../shared/index.js";
-import { sendTicketEmailStrict } from "./services/ticketEmailService.js";
 
 export const purchaseMerchandise = async (req, res, next) => {
   try {
@@ -58,58 +55,26 @@ export const purchaseMerchandise = async (req, res, next) => {
       return next(errors.badRequest("Not enough stock available"));
     }
 
-    variant.stockQty -= qty;
-    await event.save();
-
     const unitPrice = Number(variant.price || event.registrationFee || 0);
     const totalAmount = unitPrice * qty;
+    const registration = await Registration.create({
+      participantId: req.user._id,
+      eventId: event._id,
+      status: "REGISTERED",
+      merchPurchase: {
+        itemId,
+        variantId,
+        quantity: qty,
+        unitPrice,
+        totalAmount,
+        paymentStatus: "PAYMENT_PENDING",
+      },
+    });
 
-    let registration = null;
-    let ticket = null;
-    let email = null;
-
-    try {
-      registration = await Registration.create({
-        participantId: req.user._id,
-        eventId: event._id,
-        status: "REGISTERED",
-        merchPurchase: {
-          itemId,
-          variantId,
-          quantity: qty,
-          unitPrice,
-          totalAmount,
-        },
-      });
-
-      ticket = await createTicketForRegistration(registration);
-      email = await sendTicketEmailStrict({
-        participantId: req.user._id,
-        event,
-        registration,
-        ticket,
-        flow: "purchase",
-      });
-
-      return res.status(201).json({
-        message: "Purchase successful",
-        registration,
-        ticket: {
-          ticketId: ticket.ticketId,
-        },
-        email,
-      });
-    } catch (createErr) {
-      if (ticket?._id) {
-        await Ticket.findByIdAndDelete(ticket._id);
-      }
-      if (registration?._id) {
-        await Registration.findByIdAndDelete(registration._id);
-      }
-      variant.stockQty += qty;
-      await event.save();
-      throw createErr;
-    }
+    return res.status(201).json({
+      message: "Purchase initiated. Upload payment proof for organizer approval.",
+      registration,
+    });
   } catch (err) {
     return handleControllerError(err, next);
   }

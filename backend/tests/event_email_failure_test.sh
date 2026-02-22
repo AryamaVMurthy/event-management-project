@@ -4,7 +4,7 @@
 # FELICITY EVENTS EMAIL FAILURE TEST SCRIPT
 # ============================================================
 # 1) Startup must fail fast when SMTP config is invalid
-# 2) Register/Purchase must return 502 and rollback on email fail
+# 2) Register and merch approval must return 502 and rollback on email fail
 # ============================================================
 
 set -eu
@@ -31,6 +31,7 @@ RESPONSE=""
 HTTP_CODE=""
 BODY=""
 SERVER_PID=""
+PAYMENT_PROOF_FILE=""
 
 cleanup() {
   rm -f \
@@ -39,6 +40,9 @@ cleanup() {
     "$PARTICIPANT_COOKIE" \
     "$PARTICIPANT2_COOKIE" \
     "$BAD_STARTUP_LOG"
+  if [ -n "$PAYMENT_PROOF_FILE" ] && [ -f "$PAYMENT_PROOF_FILE" ]; then
+    rm -f "$PAYMENT_PROOF_FILE"
+  fi
   if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
     kill "$SERVER_PID" >/dev/null 2>&1 || true
     wait "$SERVER_PID" 2>/dev/null || true
@@ -118,6 +122,24 @@ api_call() {
   if [ -n "$data" ]; then
     cmd+=( -H "Content-Type: application/json" -d "$data" )
   fi
+
+  RESPONSE="$("${cmd[@]}")"
+  HTTP_CODE="$(echo "$RESPONSE" | tail -n1)"
+  BODY="$(echo "$RESPONSE" | sed '$d')"
+}
+
+api_upload_file() {
+  local url="$1"
+  local cookie_in="$2"
+  local file_path="$3"
+
+  local cmd=(curl -s -w "\n%{http_code}" -X POST "$url")
+
+  if [ -n "$cookie_in" ]; then
+    cmd+=( -b "$cookie_in" )
+  fi
+
+  cmd+=( -F "paymentProof=@${file_path}" )
 
   RESPONSE="$("${cmd[@]}")"
   HTTP_CODE="$(echo "$RESPONSE" | tail -n1)"
@@ -278,10 +300,19 @@ api_call "POST" "$BASE_URL/events/$MERCH_EVENT_ID/publish" "$ORGANIZER_COOKIE" "
 expect_code "200" "Publish merch event"
 
 api_call "POST" "$BASE_URL/events/$MERCH_EVENT_ID/purchase" "$PARTICIPANT2_COOKIE" "" "{\"itemId\":\"$MERCH_ITEM_ID\",\"variantId\":\"$MERCH_VARIANT_ID\",\"quantity\":1}"
-expect_code "502" "Merch purchase fails on email"
-PURCHASE_FAIL_CODE="$(json_get "$BODY" "code")" || { echo -e "${RED}Could not parse error code for merch failure${NC}"; exit 1; }
-if [ "$PURCHASE_FAIL_CODE" != "EMAIL_DELIVERY_FAILED" ]; then
-  echo -e "${RED}✗ Wrong error code for merch purchase failure${NC}"
+expect_code "201" "Merch purchase creates pending order"
+MERCH_REGISTRATION_ID="$(json_get "$BODY" "registration._id")" || { echo -e "${RED}Could not parse merch registration id${NC}"; exit 1; }
+
+PAYMENT_PROOF_FILE="$(mktemp --suffix=.pdf)"
+echo "forced email failure proof" > "$PAYMENT_PROOF_FILE"
+api_upload_file "$BASE_URL/events/registrations/$MERCH_REGISTRATION_ID/payment-proof" "$PARTICIPANT2_COOKIE" "$PAYMENT_PROOF_FILE"
+expect_code "200" "Upload merch payment proof"
+
+api_call "PATCH" "$BASE_URL/events/organizer/events/$MERCH_EVENT_ID/merch-orders/$MERCH_REGISTRATION_ID/review" "$ORGANIZER_COOKIE" "" "{\"status\":\"APPROVED\",\"reviewComment\":\"force send fail\"}"
+expect_code "502" "Merch approval fails on email"
+APPROVAL_FAIL_CODE="$(json_get "$BODY" "code")" || { echo -e "${RED}Could not parse error code for merch approval failure${NC}"; exit 1; }
+if [ "$APPROVAL_FAIL_CODE" != "EMAIL_DELIVERY_FAILED" ]; then
+  echo -e "${RED}✗ Wrong error code for merch approval failure${NC}"
   exit 1
 fi
 
@@ -296,8 +327,13 @@ fi
 api_call "GET" "$BASE_URL/events/organizer/events/$MERCH_EVENT_ID/participants" "$ORGANIZER_COOKIE" "" ""
 expect_code "200" "Merch event participants check"
 MERCH_PARTICIPANTS_LEN="$(json_array_length "$BODY" "participants")" || { echo -e "${RED}Could not parse merch participants length${NC}"; exit 1; }
-if [ "$MERCH_PARTICIPANTS_LEN" != "0" ]; then
-  echo -e "${RED}✗ Merch purchase registration was not rolled back${NC}"
+if [ "$MERCH_PARTICIPANTS_LEN" != "1" ]; then
+  echo -e "${RED}✗ Merch pending order should remain after approval email failure${NC}"
+  exit 1
+fi
+MERCH_TICKET_ID="$(json_get "$BODY" "participants.0.ticketId" || true)"
+if [ -n "${MERCH_TICKET_ID:-}" ] && [ "$MERCH_TICKET_ID" != "null" ]; then
+  echo -e "${RED}✗ Ticket should not remain after approval rollback${NC}"
   exit 1
 fi
 
@@ -309,7 +345,7 @@ if [ "$RESTORED_STOCK" != "1" ]; then
   exit 1
 fi
 
-node --input-type=module -e '
+(cd "$BACKEND_DIR" && node --input-type=module -e '
 import mongoose from "mongoose";
 const [uri, eventId, merchEventId] = process.argv.slice(1);
 await mongoose.connect(uri);
@@ -320,11 +356,11 @@ const normalTicketCount = await db.collection("tickets").countDocuments({ eventI
 const merchRegCount = await db.collection("registrations").countDocuments({ eventId: toObjectId(merchEventId) });
 const merchTicketCount = await db.collection("tickets").countDocuments({ eventId: toObjectId(merchEventId) });
 await mongoose.disconnect();
-if (normalRegCount !== 0 || normalTicketCount !== 0 || merchRegCount !== 0 || merchTicketCount !== 0) {
+if (normalRegCount !== 0 || normalTicketCount !== 0 || merchRegCount !== 1 || merchTicketCount !== 0) {
   console.error(`Rollback DB check failed: normalReg=${normalRegCount}, normalTicket=${normalTicketCount}, merchReg=${merchRegCount}, merchTicket=${merchTicketCount}`);
   process.exit(1);
 }
-' "$MONGO_URI" "$EVENT_ID" "$MERCH_EVENT_ID"
+' "$MONGO_URI" "$EVENT_ID" "$MERCH_EVENT_ID")
 
 echo -e "${GREEN}✓ Rollback checks passed for failed email sends${NC}"
 echo ""

@@ -10,9 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function OrganizerProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [requestingReset, setRequestingReset] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [categories, setCategories] = useState([]);
+  const [passwordResetRequests, setPasswordResetRequests] = useState([]);
+  const [resetReason, setResetReason] = useState("");
 
   const [form, setForm] = useState({
     email: "",
@@ -26,9 +29,10 @@ export default function OrganizerProfile() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [meRes, catRes] = await Promise.all([
+        const [meRes, catRes, resetRes] = await Promise.all([
           api.get("/user/me"),
           api.get("/clubs/categories/all"),
+          api.get("/user/password-reset-requests"),
         ]);
 
         const user = meRes.data?.user || {};
@@ -41,6 +45,7 @@ export default function OrganizerProfile() {
           discordWebhookUrl: user.discordWebhookUrl || "",
         });
         setCategories(catRes.data?.categories || []);
+        setPasswordResetRequests(resetRes.data?.requests || []);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load organizer profile");
       } finally {
@@ -68,6 +73,24 @@ export default function OrganizerProfile() {
       setError(err.response?.data?.message || "Failed to update profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const createResetRequest = async (event) => {
+    event.preventDefault();
+    setRequestingReset(true);
+    setError("");
+    setMessage("");
+    try {
+      await api.post("/user/password-reset-requests", { reason: resetReason });
+      setResetReason("");
+      const resetRes = await api.get("/user/password-reset-requests");
+      setPasswordResetRequests(resetRes.data?.requests || []);
+      setMessage("Password reset request submitted");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to submit password reset request");
+    } finally {
+      setRequestingReset(false);
     }
   };
 
@@ -145,6 +168,44 @@ export default function OrganizerProfile() {
                 {saving ? "Saving..." : "Save Profile"}
               </Button>
             </form>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Password Reset Requests</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <form onSubmit={createResetRequest} className="space-y-3">
+            <div>
+              <Label htmlFor="reset-reason">Reason</Label>
+              <Input
+                id="reset-reason"
+                value={resetReason}
+                onChange={(e) => setResetReason(e.target.value)}
+                placeholder="Explain why password reset is needed"
+              />
+            </div>
+            <Button type="submit" variant="outline" disabled={requestingReset}>
+              {requestingReset ? "Submitting..." : "Request Password Reset"}
+            </Button>
+          </form>
+
+          {passwordResetRequests.length === 0 ? (
+            <p>No reset requests yet.</p>
+          ) : (
+            passwordResetRequests.map((request) => (
+              <Card key={request._id}>
+                <CardContent className="space-y-1 pt-4">
+                  <p>Status: {request.status}</p>
+                  <p>Reason: {request.reason}</p>
+                  <p>Requested At: {new Date(request.requestedAt).toLocaleString()}</p>
+                  <p>Reviewed At: {request.reviewedAt ? new Date(request.reviewedAt).toLocaleString() : "-"}</p>
+                  <p>Admin Comment: {request.adminComment || "-"}</p>
+                </CardContent>
+              </Card>
+            ))
           )}
         </CardContent>
       </Card>

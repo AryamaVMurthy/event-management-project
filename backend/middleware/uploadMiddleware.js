@@ -13,6 +13,7 @@ const upload = multer({
 });
 
 export const uploadRegistrationFiles = upload.any();
+export const uploadPaymentProof = upload.single("paymentProof");
 
 export const handleUploadError = (err, req, res, next) => {
   if (!err) return next();

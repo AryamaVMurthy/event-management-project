@@ -6,3 +6,8 @@ export {
   listRegistrationFiles,
   downloadRegistrationFile,
 } from "./fileAccessController.js";
+
+export {
+  uploadPaymentProof,
+  getPaymentProof,
+} from "./paymentProofController.js";

@@ -79,6 +79,11 @@ export default function BrowseEvents() {
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [submitting, setSubmitting] = useState(false);
+  const [merchRegistrationsByEvent, setMerchRegistrationsByEvent] = useState({});
+  const [paymentProofFile, setPaymentProofFile] = useState(null);
+  const [uploadingPaymentProof, setUploadingPaymentProof] = useState(false);
+  const [loadingPaymentProofMeta, setLoadingPaymentProofMeta] = useState(false);
+  const [paymentProofMetaByRegistration, setPaymentProofMetaByRegistration] = useState({});
 
   const selectedItem = useMemo(() => {
     if (!eventDetails || eventDetails.type !== "MERCHANDISE") return null;
@@ -92,6 +97,11 @@ export default function BrowseEvents() {
       null
     );
   }, [selectedItem, selectedVariantId]);
+
+  const activeMerchRegistration =
+    eventDetails?.type === "MERCHANDISE"
+      ? merchRegistrationsByEvent[eventDetails.id] || null
+      : null;
 
   useEffect(() => {
     if (!selectedItem) {
@@ -146,6 +156,55 @@ export default function BrowseEvents() {
     }
   };
 
+  const loadMyMerchRegistrations = async () => {
+    try {
+      const response = await api.get("/user/my-events");
+      const allRows = [
+        ...(response.data?.upcomingEvents || []),
+        ...(response.data?.history?.normal || []),
+        ...(response.data?.history?.merchandise || []),
+        ...(response.data?.history?.completed || []),
+        ...(response.data?.history?.cancelledRejected || []),
+      ];
+
+      const map = {};
+      for (const row of allRows) {
+        if (row.eventType !== "MERCHANDISE") continue;
+        map[row.eventId] = {
+          registrationId: row.registrationId,
+          ticketId: row.ticketId || null,
+          participationStatus: row.participationStatus || "REGISTERED",
+        };
+      }
+      setMerchRegistrationsByEvent(map);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load merchandise registrations");
+    }
+  };
+
+  const loadPaymentProofMeta = async (registrationId) => {
+    if (!registrationId) return;
+    setLoadingPaymentProofMeta(true);
+    try {
+      const response = await api.get(`/events/registrations/${registrationId}/payment-proof`);
+      setPaymentProofMetaByRegistration((prev) => ({
+        ...prev,
+        [registrationId]: response.data?.order || null,
+      }));
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setPaymentProofMetaByRegistration((prev) => ({
+          ...prev,
+          [registrationId]: null,
+        }));
+      } else {
+        setError(err.response?.data?.message || "Failed to load payment proof");
+      }
+    } finally {
+      setLoadingPaymentProofMeta(false);
+    }
+  };
+
   const loadEventDetails = async (eventId) => {
     if (!eventId) {
       setEventDetails(null);
@@ -183,6 +242,7 @@ export default function BrowseEvents() {
 
   useEffect(() => {
     loadEvents();
+    loadMyMerchRegistrations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -191,6 +251,13 @@ export default function BrowseEvents() {
       loadEventDetails(selectedEventId);
     }
   }, [selectedEventId]);
+
+  useEffect(() => {
+    if (activeMerchRegistration?.registrationId) {
+      loadPaymentProofMeta(activeMerchRegistration.registrationId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMerchRegistration?.registrationId]);
 
   const onFilterInput = (event) => {
     const { name, value } = event.target;
@@ -291,14 +358,83 @@ export default function BrowseEvents() {
         quantity: Number(quantity),
       };
       const response = await api.post(`/events/${eventDetails.id}/purchase`, payload);
-      const ticketId = response.data?.ticket?.ticketId;
-      setMessage(ticketId ? `Purchase successful. Ticket: ${ticketId}` : "Purchase successful");
+      const registrationId = response.data?.registration?._id;
+      setMessage("Order created. Upload payment proof for organizer approval.");
+      if (registrationId) {
+        setMerchRegistrationsByEvent((prev) => ({
+          ...prev,
+          [eventDetails.id]: {
+            registrationId,
+            ticketId: null,
+            participationStatus: "REGISTERED",
+          },
+        }));
+      }
+      setPaymentProofFile(null);
+      await loadMyMerchRegistrations();
       await loadEvents(filters);
       await loadEventDetails(eventDetails.id);
     } catch (err) {
       setError(err.response?.data?.message || "Purchase failed");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const submitPaymentProof = async (event) => {
+    event.preventDefault();
+    if (!activeMerchRegistration?.registrationId) {
+      setError("No merchandise registration found for this event");
+      return;
+    }
+    if (!paymentProofFile) {
+      setError("Select a payment proof file first");
+      return;
+    }
+
+    setUploadingPaymentProof(true);
+    setError("");
+    setMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("paymentProof", paymentProofFile);
+      const response = await api.post(
+        `/events/registrations/${activeMerchRegistration.registrationId}/payment-proof`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      setMessage(response.data?.message || "Payment proof uploaded");
+      setPaymentProofFile(null);
+      setPaymentProofMetaByRegistration((prev) => ({
+        ...prev,
+        [activeMerchRegistration.registrationId]: response.data?.order || null,
+      }));
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to upload payment proof");
+    } finally {
+      setUploadingPaymentProof(false);
+    }
+  };
+
+  const downloadPaymentProof = async (registrationId, fileName) => {
+    try {
+      const response = await api.get(
+        `/events/registrations/${registrationId}/payment-proof?download=true`,
+        {
+          responseType: "blob",
+        }
+      );
+      const blobUrl = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName || "payment-proof";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to download payment proof");
     }
   };
 
@@ -760,6 +896,69 @@ export default function BrowseEvents() {
                         {submitting ? "Submitting..." : "Purchase"}
                       </Button>
                     </form>
+
+                    {activeMerchRegistration ? (
+                      <div className="space-y-3 pt-4">
+                        <Separator />
+                        <p>Your order registration ID: {activeMerchRegistration.registrationId}</p>
+                        <p>
+                          Ticket Status:{" "}
+                          {activeMerchRegistration.ticketId
+                            ? `Approved (Ticket: ${activeMerchRegistration.ticketId})`
+                            : "Awaiting approval"}
+                        </p>
+                        <form onSubmit={submitPaymentProof} className="space-y-2">
+                          <Label htmlFor="payment-proof-file">Upload Payment Proof (PDF/JPG/PNG)</Label>
+                          <Input
+                            id="payment-proof-file"
+                            type="file"
+                            accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+                            onChange={(event) =>
+                              setPaymentProofFile(event.target.files?.[0] || null)
+                            }
+                          />
+                          {paymentProofFile ? <p>Selected: {paymentProofFile.name}</p> : null}
+                          <Button type="submit" variant="outline" disabled={uploadingPaymentProof}>
+                            {uploadingPaymentProof ? "Uploading..." : "Submit Payment Proof"}
+                          </Button>
+                        </form>
+
+                        {loadingPaymentProofMeta ? <p>Loading payment proof status...</p> : null}
+                        {paymentProofMetaByRegistration[activeMerchRegistration.registrationId] ? (
+                          <div className="space-y-1">
+                            <p>
+                              Payment Status:{" "}
+                              {
+                                paymentProofMetaByRegistration[activeMerchRegistration.registrationId]
+                                  .paymentStatus
+                              }
+                            </p>
+                            <p>
+                              Uploaded At:{" "}
+                              {toLocalDateTime(
+                                paymentProofMetaByRegistration[activeMerchRegistration.registrationId]
+                                  .paymentProof?.uploadedAt
+                              )}
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() =>
+                                downloadPaymentProof(
+                                  activeMerchRegistration.registrationId,
+                                  paymentProofMetaByRegistration[activeMerchRegistration.registrationId]
+                                    .paymentProof?.fileName || "payment-proof"
+                                )
+                              }
+                            >
+                              Download Uploaded Proof
+                            </Button>
+                          </div>
+                        ) : (
+                          <p>No payment proof uploaded yet.</p>
+                        )}
+                      </div>
+                    ) : null}
                   </CardContent>
                 </Card>
               )}

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import api from "../lib/api";
 import ParticipantNavbar from "../components/ParticipantNavbar";
 
@@ -27,6 +28,12 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("normal");
   const [filesByRegistration, setFilesByRegistration] = useState({});
   const [loadingFilesFor, setLoadingFilesFor] = useState("");
+  const [calendarLinksByRegistration, setCalendarLinksByRegistration] = useState({});
+  const [loadingCalendarLinksFor, setLoadingCalendarLinksFor] = useState("");
+  const [downloadingCalendarFor, setDownloadingCalendarFor] = useState("");
+  const [selectedRegistrations, setSelectedRegistrations] = useState({});
+  const [batchReminderMinutes, setBatchReminderMinutes] = useState("30");
+  const [downloadingBatchCalendar, setDownloadingBatchCalendar] = useState(false);
 
   useEffect(() => {
     const loadMyEvents = async () => {
@@ -106,12 +113,116 @@ export default function Dashboard() {
     }
   };
 
+  const downloadCalendarIcs = async (registrationId, eventName) => {
+    setDownloadingCalendarFor(registrationId);
+    setError("");
+    try {
+      const response = await api.get(`/calendar/registrations/${registrationId}.ics`, {
+        responseType: "blob",
+      });
+      const blobUrl = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      const safeName = (eventName || "event")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      link.download = `${safeName || "event"}-${registrationId}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to download calendar file");
+    } finally {
+      setDownloadingCalendarFor("");
+    }
+  };
+
+  const toggleCalendarSelection = (record) => {
+    setSelectedRegistrations((prev) => {
+      const next = { ...prev };
+      if (next[record.registrationId]) {
+        delete next[record.registrationId];
+      } else {
+        next[record.registrationId] = {
+          registrationId: record.registrationId,
+          eventName: record.eventName,
+        };
+      }
+      return next;
+    });
+  };
+
+  const clearCalendarSelection = () => {
+    setSelectedRegistrations({});
+  };
+
+  const downloadBatchCalendarIcs = async () => {
+    const registrationIds = Object.keys(selectedRegistrations);
+    if (registrationIds.length === 0) {
+      setError("Select at least one registration to export batch calendar");
+      return;
+    }
+
+    setDownloadingBatchCalendar(true);
+    setError("");
+    try {
+      const params = new URLSearchParams();
+      params.set("registrationIds", registrationIds.join(","));
+      if (batchReminderMinutes.trim()) {
+        params.set("reminderMinutes", batchReminderMinutes.trim());
+      }
+
+      const response = await api.get(`/calendar/my-events.ics?${params.toString()}`, {
+        responseType: "blob",
+      });
+
+      const blobUrl = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = "my-events.ics";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to download batch calendar file");
+    } finally {
+      setDownloadingBatchCalendar(false);
+    }
+  };
+
+  const loadCalendarLinks = async (registrationId) => {
+    setLoadingCalendarLinksFor(registrationId);
+    setError("");
+    try {
+      const response = await api.get(`/calendar/registrations/${registrationId}/links`);
+      setCalendarLinksByRegistration((prev) => ({
+        ...prev,
+        [registrationId]: response.data?.links || null,
+      }));
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load calendar links");
+    } finally {
+      setLoadingCalendarLinksFor("");
+    }
+  };
+
   const renderRecord = (record) => (
     <Card key={record.registrationId}>
       <CardHeader>
         <CardTitle>{record.eventName}</CardTitle>
       </CardHeader>
       <CardContent>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={Boolean(selectedRegistrations[record.registrationId])}
+            onChange={() => toggleCalendarSelection(record)}
+          />
+          Add to batch calendar export
+        </label>
         <p>Type: {record.eventType || "-"}</p>
         <p>Organizer: {record.organizerName || "-"}</p>
         <p>Status: {record.participationStatus || "-"}</p>
@@ -129,6 +240,50 @@ export default function Dashboard() {
             "-"
           )}
         </p>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => downloadCalendarIcs(record.registrationId, record.eventName)}
+            disabled={downloadingCalendarFor === record.registrationId}
+          >
+            {downloadingCalendarFor === record.registrationId
+              ? "Downloading ICS..."
+              : "Download Calendar ICS"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => loadCalendarLinks(record.registrationId)}
+            disabled={loadingCalendarLinksFor === record.registrationId}
+          >
+            {loadingCalendarLinksFor === record.registrationId
+              ? "Loading Links..."
+              : "Show Calendar Links"}
+          </Button>
+        </div>
+        {calendarLinksByRegistration[record.registrationId] ? (
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" asChild>
+              <a
+                href={calendarLinksByRegistration[record.registrationId].google}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open Google Calendar
+              </a>
+            </Button>
+            <Button type="button" variant="outline" asChild>
+              <a
+                href={calendarLinksByRegistration[record.registrationId].outlook}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open Outlook Calendar
+              </a>
+            </Button>
+          </div>
+        ) : null}
         <Button
           type="button"
           variant="outline"
@@ -182,6 +337,35 @@ export default function Dashboard() {
           <p>Email: {user?.email}</p>
           <p>Role: {user?.role}</p>
           {error && <p>{error}</p>}
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Batch Calendar Export</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p>Selected registrations: {Object.keys(selectedRegistrations).length}</p>
+          <div className="flex gap-2">
+            <Input
+              value={batchReminderMinutes}
+              onChange={(event) => setBatchReminderMinutes(event.target.value)}
+              placeholder="Reminder minutes (default 30)"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={downloadBatchCalendarIcs}
+              disabled={downloadingBatchCalendar}
+            >
+              {downloadingBatchCalendar ? "Downloading..." : "Export Selected ICS"}
+            </Button>
+            <Button type="button" variant="outline" onClick={clearCalendarSelection}>
+              Clear Selection
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
