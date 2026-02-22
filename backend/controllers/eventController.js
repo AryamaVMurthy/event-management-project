@@ -5,7 +5,7 @@ export {
   purchaseMerchandise,
   listRegistrationFiles,
   downloadRegistrationFile,
-} from "./events/participantEventController.js";
+} from "./events/participant/index.js";
 
 export {
   getOrganizerEvents,
@@ -21,4 +21,4 @@ export {
   startEvent,
   closeEvent,
   completeEvent,
-} from "./events/organizerEventController.js";
+} from "./events/organizer/index.js";
