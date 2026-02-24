@@ -1,3 +1,2 @@
-Frontend URL (Vercel): <replace-before-submission>
-Backend API URL (Render): <replace-before-submission>
-Last Updated: 2026-02-22
+Frontend URL: https://event-management-project-bay.vercel.app
+Backend API URL: https://event-management-project-zts1.onrender.com/api

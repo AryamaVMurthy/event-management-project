@@ -45,6 +45,3 @@ cd frontend
 npm install
 npm run dev
 ```
-
-## Evidence Docs
-1. `docs/advanced/api-contracts.md`
