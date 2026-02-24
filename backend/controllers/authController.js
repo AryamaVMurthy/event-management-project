@@ -22,10 +22,19 @@ const signToken = (user) => {
   );
 };
 
+const isSecureFrontendOrigin = (() => {
+  try {
+    return new URL(env.FRONTEND_URL).protocol === "https:";
+  } catch {
+    return false;
+  }
+})();
+
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: isSecureFrontendOrigin,
+  sameSite: isSecureFrontendOrigin ? "none" : "lax",
+  path: "/",
   maxAge: 14 * 24 * 60 * 60 * 1000,
 };
 
