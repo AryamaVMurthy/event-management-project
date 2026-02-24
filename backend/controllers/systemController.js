@@ -10,9 +10,9 @@ export const getEmailHealth = async (req, res, next) => {
       verifiedAt: status.verifiedAt,
       host: status.host,
       port: status.port,
+      fallback_reason: status.fallback_reason,
     });
   } catch (err) {
     return next(err);
   }
 };
-

@@ -20,8 +20,14 @@ const app = express();
 app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
 // Connect to MongoDB
 await connectDB();
-await initMailer();
-console.log(`SMTP verified on ${env.SMTP_HOST}:${env.SMTP_PORT}`);
+const mailerInit = await initMailer();
+if (mailerInit.mode === "disabled") {
+  console.warn(
+    `Email disabled at startup (fallback_reason=${mailerInit.fallback_reason})`
+  );
+} else {
+  console.log(`SMTP verified on ${env.SMTP_HOST}:${env.SMTP_PORT}`);
+}
 
 // Middleware
 app.use(express.json());

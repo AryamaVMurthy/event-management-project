@@ -3,6 +3,7 @@ import { env } from "../config/env.js";
 
 let cachedTransporter = null;
 let verifiedAt = null;
+const emailDisabledReason = "EMAIL_MODE=disabled";
 
 const createTransporter = () =>
   nodemailer.createTransport({
@@ -23,6 +24,18 @@ const getTransporter = () => {
 };
 
 export const initMailer = async () => {
+  if (env.EMAIL_MODE === "disabled") {
+    verifiedAt = null;
+    return {
+      ok: false,
+      mode: "disabled",
+      verifiedAt: null,
+      host: null,
+      port: null,
+      fallback_reason: emailDisabledReason,
+    };
+  }
+
   const transporter = getTransporter();
   try {
     await transporter.verify();
@@ -43,6 +56,17 @@ export const initMailer = async () => {
 };
 
 export const sendEmail = async ({ to, subject, text, html }) => {
+  if (env.EMAIL_MODE === "disabled") {
+    return {
+      mode: "disabled",
+      messageId: null,
+      accepted: [],
+      rejected: [],
+      fallback_reason: emailDisabledReason,
+      skipped: true,
+    };
+  }
+
   const transporter = getTransporter();
 
   if (env.EMAIL_FORCE_FAIL_SEND) {
@@ -75,11 +99,12 @@ export const sendEmail = async ({ to, subject, text, html }) => {
 };
 
 export const getMailerStatus = () => ({
-  ok: Boolean(verifiedAt),
-  mode: "smtp",
+  ok: env.EMAIL_MODE === "disabled" ? false : Boolean(verifiedAt),
+  mode: env.EMAIL_MODE === "disabled" ? "disabled" : "smtp",
   verifiedAt,
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT,
+  host: env.EMAIL_MODE === "disabled" ? null : env.SMTP_HOST,
+  port: env.EMAIL_MODE === "disabled" ? null : env.SMTP_PORT,
+  fallback_reason: env.EMAIL_MODE === "disabled" ? emailDisabledReason : null,
 });
 
 export const resetMailerForTests = () => {
