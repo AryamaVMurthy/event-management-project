@@ -1,6 +1,8 @@
+// Textarea: Module level logic for the feature area.
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+// Textarea: renders a ref-forwarding, styled multiline text input.
 const Textarea = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <textarea

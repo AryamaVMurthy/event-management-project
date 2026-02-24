@@ -1,7 +1,9 @@
 // backend/middleware/authMiddleware.js
+// Auth Middleware: Middleware level logic for the feature area.
 import jwt from "jsonwebtoken";
 import { errors } from "../utils/Errors.js";
 
+// Protect: Runs Protect flow. Inputs: req, res, next. Returns: a function result.
 export const protect = async (req, res, next) => {
   let token;
   
@@ -29,6 +31,7 @@ export const protect = async (req, res, next) => {
   }
 };
 
+// Restrict To: Runs Restrict to flow. Inputs: ...roles. Returns: a function result.
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

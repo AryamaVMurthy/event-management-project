@@ -1,3 +1,4 @@
+// Admin Event Participants: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../lib/api";
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// To Local: ToLocal. Converts local into a new representation. Inputs: value. Returns: a function result.
 const toLocal = (value) => {
   if (!value) return "-";
   try {
@@ -37,6 +39,7 @@ const attendanceFilters = [
   { label: "Absent", value: "absent" },
 ];
 
+// Admin Event Participants: Runs Admin event participants flow. Inputs: none. Returns: a function result.
 export default function AdminEventParticipants() {
   const { eventId } = useParams();
   const [loading, setLoading] = useState(true);
@@ -48,6 +51,7 @@ export default function AdminEventParticipants() {
   const [filesByRegistration, setFilesByRegistration] = useState({});
   const [loadingFilesFor, setLoadingFilesFor] = useState("");
 
+  // Load: Loads the requested resources from API or cache. Inputs: nextFilters. Returns: a Promise with payload data.
   const load = async (nextFilters = filters) => {
     if (!eventId) return;
     setLoading(true);
@@ -73,11 +77,13 @@ export default function AdminEventParticipants() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
+  // Apply Filters: Applies filters to current state. Inputs: evt. Returns: a function result.
   const applyFilters = async (evt) => {
     evt.preventDefault();
     await load(filters);
   };
 
+  // Load Files: Loads files linked to a registration or registration field. Inputs: registrationId. Returns: a function result.
   const loadFiles = async (registrationId) => {
     setLoadingFilesFor(registrationId);
     setError("");
@@ -98,6 +104,7 @@ export default function AdminEventParticipants() {
     }
   };
 
+  // Download File: Downloads and prompts a file attachment for a given registration context. Inputs: registrationId, fieldId, fileName. Returns: a function result.
   const downloadFile = async (registrationId, fieldId, fileName) => {
     setError("");
     try {

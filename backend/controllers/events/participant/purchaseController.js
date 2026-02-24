@@ -1,3 +1,4 @@
+// Purchase Controller: Controller level logic for the feature area.
 import { Registration } from "../../../models/Registration.js";
 import { errors } from "../../../utils/Errors.js";
 import {
@@ -10,6 +11,7 @@ import {
   assertNoExistingRegistration,
 } from "../shared/index.js";
 
+// Purchase Merchandise: Runs Purchase merchandise flow. Inputs: req, res, next. Returns: a function result.
 export const purchaseMerchandise = async (req, res, next) => {
   try {
     if (!isParticipantRole(req.user.role)) {

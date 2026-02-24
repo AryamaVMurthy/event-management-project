@@ -1,3 +1,4 @@
+// File Access Controller: Controller level logic for the feature area.
 import { errors } from "../../../utils/Errors.js";
 import {
   getGridFSFileInfo,
@@ -9,6 +10,7 @@ import {
   getRegistrationFilesFromResponses,
 } from "../shared/index.js";
 
+// List Registration Files: Lists registration files for display and action. Inputs: req, res, next. Returns: a function result.
 export const listRegistrationFiles = async (req, res, next) => {
   try {
     const { registrationId } = req.params;
@@ -33,6 +35,7 @@ export const listRegistrationFiles = async (req, res, next) => {
   }
 };
 
+// Download Registration File: Downloads registration-scoped uploaded documents. Inputs: req, res, next. Returns: a function result.
 export const downloadRegistrationFile = async (req, res, next) => {
   try {
     const { registrationId, fieldId } = req.params;

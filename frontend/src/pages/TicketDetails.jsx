@@ -1,3 +1,4 @@
+// Ticket Details: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../lib/api";
@@ -5,6 +6,7 @@ import ParticipantNavbar from "../components/ParticipantNavbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+// Format Date Time: Converts date values into UI-facing formatted strings. Inputs: value. Returns: a function result.
 const formatDateTime = (value) => {
   if (!value) return "-";
   try {
@@ -14,6 +16,7 @@ const formatDateTime = (value) => {
   }
 };
 
+// Ticket Details: Runs Ticket details flow. Inputs: none. Returns: a function result.
 export default function TicketDetails() {
   const { ticketId } = useParams();
 
@@ -22,6 +25,7 @@ export default function TicketDetails() {
   const [ticket, setTicket] = useState(null);
 
   useEffect(() => {
+    // Load Ticket: Loads ticket details using the ticket id route parameter. Inputs: none. Returns: a function result.
     const loadTicket = async () => {
       setLoading(true);
       setError("");

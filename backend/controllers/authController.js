@@ -1,3 +1,4 @@
+// Auth Controller: Controller level logic for the feature area.
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
@@ -11,8 +12,7 @@ import {
 } from "../models/User.js"; 
 import { participantZodSchema, loginSchema } from "../models/User.js";
 
-
-
+// Sign Token: Creates a signed JWT that includes identity and role claims. Inputs: user. Returns: a function result.
 const signToken = (user) => {
   const userId = (user.id ?? user._id)?.toString();
   return jwt.sign(
@@ -22,6 +22,7 @@ const signToken = (user) => {
   );
 };
 
+// Is Secure Frontend Origin: Checks whether the configured frontend URL is HTTPS so cookies can be marked secure. Inputs: (. Returns: a function result.
 const isSecureFrontendOrigin = (() => {
   try {
     return new URL(env.FRONTEND_URL).protocol === "https:";
@@ -38,11 +39,12 @@ const cookieOptions = {
   maxAge: 14 * 24 * 60 * 60 * 1000,
 };
 
+// Set Auth Cookie: Writes the authentication cookie to the response using shared cookie defaults. Inputs: res, token. Returns: side effects and response to caller.
 const setAuthCookie = (res, token) => {
   res.cookie("token", token, cookieOptions);
 };
 
-
+// Register: Registers a new account and signs the user in on success. Inputs: req, res, next. Returns: side effects and response to caller.
 const register = async (req, res, next) => {
   try {
     const payload = participantZodSchema.parse(req.body);
@@ -81,6 +83,7 @@ const register = async (req, res, next) => {
   }
 };
 
+// Login: Authenticates a user and establishes a session through a response cookie. Inputs: req, res, next. Returns: side effects and response to caller.
 const login = async (req, res, next) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
@@ -120,6 +123,7 @@ const login = async (req, res, next) => {
   }
 };
 
+// Logout: Clears the auth cookie and resets client session state. Inputs: req, res. Returns: side effects and response to caller.
 const logout = (req, res) => {
   res.clearCookie("token", cookieOptions);
   return res.status(200).json({ message: "Logout successful" });

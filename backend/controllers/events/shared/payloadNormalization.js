@@ -1,3 +1,4 @@
+// Payload Normalization: Controller level logic for the feature area.
 export const canEditFieldInPublished = new Set([
   "description",
   "registrationDeadline",
@@ -5,6 +6,7 @@ export const canEditFieldInPublished = new Set([
   "tags",
 ]);
 
+// To Slug: ToSlug. Converts slug into a new representation. Inputs: value, fallback. Returns: a function result.
 const toSlug = (value, fallback) => {
   const normalized = String(value || "")
     .trim()
@@ -14,6 +16,7 @@ const toSlug = (value, fallback) => {
   return normalized || fallback;
 };
 
+// Create Unique Id: Creates unique id from input data. Inputs: base, usedSet. Returns: side effects and response to caller.
 const createUniqueId = (base, usedSet) => {
   let candidate = base;
   let counter = 2;
@@ -27,6 +30,7 @@ const createUniqueId = (base, usedSet) => {
   return candidate;
 };
 
+// Canonicalize Custom Form Schema: Normalizes custom form fields for consistent downstream storage. Inputs: schema. Returns: a function result.
 const canonicalizeCustomFormSchema = (schema) => {
   if (!Array.isArray(schema)) return schema;
 
@@ -48,6 +52,7 @@ const canonicalizeCustomFormSchema = (schema) => {
   });
 };
 
+// Canonicalize Merch Items: Normalizes merchandise item descriptors and variant data. Inputs: items. Returns: a function result.
 const canonicalizeMerchItems = (items) => {
   if (!Array.isArray(items)) return items;
 
@@ -86,6 +91,7 @@ const canonicalizeMerchItems = (items) => {
   });
 };
 
+// Canonicalize Event Internals: Builds a canonical event representation for validation and use. Inputs: payload. Returns: a function result.
 const canonicalizeEventInternals = (payload) => {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     return payload;
@@ -106,12 +112,14 @@ const canonicalizeEventInternals = (payload) => {
   return normalizedPayload;
 };
 
+// Normalize Create Payload: Cleans and trims payload before create operations. Inputs: body, organizerId. Returns: a function result.
 export const normalizeCreatePayload = (body, organizerId) =>
   canonicalizeEventInternals({
     ...body,
     organizerId: String(organizerId),
   });
 
+// Normalize Update Payload: Cleans and trims payload before update operations. Inputs: body. Returns: a function result.
 export const normalizeUpdatePayload = (body) => {
   const payload = { ...body };
   delete payload.organizerId;

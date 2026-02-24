@@ -1,3 +1,4 @@
+// Organizer Event Details: Module level logic for the feature area.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../lib/api";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// To Local: ToLocal. Converts local into a new representation. Inputs: value. Returns: a function result.
 const toLocal = (value) => {
   if (!value) return "-";
   try {
@@ -17,6 +19,7 @@ const toLocal = (value) => {
   }
 };
 
+// Organizer Event Details: Runs Organizer event details flow. Inputs: none. Returns: a function result.
 export default function OrganizerEventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,6 +60,7 @@ export default function OrganizerEventDetails() {
   const cameraStreamRef = useRef(null);
   const cameraPollTimerRef = useRef(null);
 
+  // Load: Loads the requested resources from API or cache. Inputs: nextFilters. Returns: a Promise with payload data.
   const load = async (nextFilters = filters) => {
     setLoading(true);
     setError("");
@@ -107,6 +111,7 @@ export default function OrganizerEventDetails() {
     if (activePanel !== "scanner") return undefined;
     let cancelled = false;
 
+    // Poll: Polls status data repeatedly until completion state changes. Inputs: none. Returns: a function result.
     const poll = async () => {
       if (cancelled) return;
       await fetchLiveAttendanceSummary();
@@ -129,11 +134,13 @@ export default function OrganizerEventDetails() {
     []
   );
 
+  // Apply Participant Filters: Applies participant filters to current state. Inputs: evt. Returns: a function result.
   const applyParticipantFilters = async (evt) => {
     evt.preventDefault();
     await load(filters);
   };
 
+  // Load Merch Orders: Loads merchandise orders for the selected event and current status filter. Inputs: nextStatus. Returns: a function result.
   const loadMerchOrders = async (nextStatus = merchStatusFilter) => {
     if (!event || event.type !== "MERCHANDISE") {
       setMerchOrders([]);
@@ -163,6 +170,7 @@ export default function OrganizerEventDetails() {
     return [];
   }, [event]);
 
+  // Run Action: Runs action and wires outcomes. Inputs: endpoint. Returns: a function result.
   const runAction = async (endpoint) => {
     try {
       setError("");
@@ -175,6 +183,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Save Edits: Saves edits to the data store. Inputs: evt. Returns: side effects and response to caller.
   const saveEdits = async (evt) => {
     evt.preventDefault();
     try {
@@ -196,6 +205,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Delete Draft Event: Deletes draft event from persistent storage. Inputs: none. Returns: side effects and response to caller.
   const deleteDraftEvent = async () => {
     if (!event || event.status !== "DRAFT") return;
     const confirmed = window.confirm("Delete this draft event permanently?");
@@ -211,6 +221,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Load Files: Loads files linked to a registration or registration field. Inputs: registrationId. Returns: a function result.
   const loadFiles = async (registrationId) => {
     setLoadingFilesFor(registrationId);
     setError("");
@@ -232,6 +243,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Download File: Downloads and prompts a file attachment for a given registration context. Inputs: registrationId, fieldId, fileName. Returns: a function result.
   const downloadFile = async (registrationId, fieldId, fileName) => {
     setError("");
     try {
@@ -251,6 +263,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Download Payment Proof: Downloads payment proof media for review workflows. Inputs: registrationId, fileName. Returns: a function result.
   const downloadPaymentProof = async (registrationId, fileName) => {
     setDownloadingPaymentProofFor(registrationId);
     setError("");
@@ -276,6 +289,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Review Merch Order: Updates merchandise order review state and notes from admin workflow. Inputs: registrationId, status. Returns: a function result.
   const reviewMerchOrder = async (registrationId, status) => {
     setReviewingOrderFor(registrationId);
     setError("");
@@ -298,6 +312,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Fetch Live Attendance Summary: Pulls and normalizes live attendance metrics. Inputs: none. Returns: a function result.
   const fetchLiveAttendanceSummary = async () => {
     if (!event) return;
     setLoadingLiveSummary(true);
@@ -311,6 +326,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Submit Scan Payload: Submits scan payload to backend services. Inputs: rawPayload. Returns: side effects and response to caller.
   const submitScanPayload = async (rawPayload = scanPayloadText) => {
     const payloadText = String(rawPayload || "").trim();
     if (!payloadText) {
@@ -343,6 +359,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Decode Qr From Image: Decodes and validates QR content extracted from uploaded image input. Inputs: file. Returns: a function result.
   const decodeQrFromImage = async (file) => {
     if (!file) {
       setError("Select an image to decode QR");
@@ -372,6 +389,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Stop Camera Scanner: Stops camera scanner and releases stream resources. Inputs: none. Returns: a function result.
   const stopCameraScanner = () => {
     if (cameraPollTimerRef.current) {
       clearInterval(cameraPollTimerRef.current);
@@ -386,6 +404,7 @@ export default function OrganizerEventDetails() {
     setCameraActive(false);
   };
 
+  // Start Camera Scanner: Starts camera capture stream for scan operations. Inputs: none. Returns: a function result.
   const startCameraScanner = async () => {
     if (typeof window === "undefined" || !window.BarcodeDetector) {
       setError("BarcodeDetector API is not supported in this browser");
@@ -426,6 +445,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Submit Manual Override: Submits a manual attendance override decision from scanner view. Inputs: eventObj. Returns: side effects and response to caller.
   const submitManualOverride = async (eventObj) => {
     eventObj.preventDefault();
     const registrationId = manualOverrideForm.registrationId.trim();
@@ -456,6 +476,7 @@ export default function OrganizerEventDetails() {
     }
   };
 
+  // Update Attendance: Updates attendance based on input. Inputs: registrationId, attended. Returns: side effects and response to caller.
   const updateAttendance = async (registrationId, attended) => {
     try {
       await api.patch(`/events/organizer/events/${id}/participants/${registrationId}/attendance`, {

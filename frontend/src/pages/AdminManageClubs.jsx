@@ -1,3 +1,4 @@
+// Admin Manage Clubs: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
@@ -19,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Admin Manage Clubs: Runs Admin manage clubs flow. Inputs: none. Returns: a function result.
 export default function AdminManageClubs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,6 +40,7 @@ export default function AdminManageClubs() {
     contactNumber: "",
   });
 
+  // Load Data: Fetches the primary dataset for the current screen. Inputs: nextStatus, nextQuery. Returns: a function result.
   const loadData = async (nextStatus = statusFilter, nextQuery = searchQuery) => {
     setLoading(true);
     try {
@@ -61,6 +64,7 @@ export default function AdminManageClubs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Create Category: Creates a new event category entry. Inputs: event. Returns: side effects and response to caller.
   const createCategory = async (event) => {
     event.preventDefault();
     setError("");
@@ -75,6 +79,7 @@ export default function AdminManageClubs() {
     }
   };
 
+  // Create Organizer: Creates organizer accounts through admin workflows. Inputs: event. Returns: side effects and response to caller.
   const createOrganizer = async (event) => {
     event.preventDefault();
     setError("");
@@ -96,6 +101,7 @@ export default function AdminManageClubs() {
     }
   };
 
+  // Update Status: Updates status based on input. Inputs: organizerId, accountStatus. Returns: side effects and response to caller.
   const updateStatus = async (organizerId, accountStatus) => {
     setError("");
     setMessage("");
@@ -108,6 +114,7 @@ export default function AdminManageClubs() {
     }
   };
 
+  // Delete Organizer: Removes organizer account records from the platform. Inputs: organizerId. Returns: side effects and response to caller.
   const deleteOrganizer = async (organizerId) => {
     setError("");
     setMessage("");
@@ -120,6 +127,7 @@ export default function AdminManageClubs() {
     }
   };
 
+  // Apply Filters: Applies filters to current state. Inputs: event. Returns: a function result.
   const applyFilters = async (event) => {
     event.preventDefault();
     await loadData(statusFilter, searchQuery);

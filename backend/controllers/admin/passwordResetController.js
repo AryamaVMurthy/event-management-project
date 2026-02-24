@@ -1,3 +1,4 @@
+// Password Reset Controller: Controller level logic for the feature area.
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { Organizer } from "../../models/User.js";
@@ -12,9 +13,11 @@ const objectIdSchema = z.string().trim().refine((value) => /^[a-fA-F0-9]{24}$/.t
   message: "Invalid id",
 });
 
+// Generate Random Password: Generates random password from existing data. Inputs: none. Returns: a function result.
 const generateRandomPassword = () =>
   String(Math.floor(100000 + Math.random() * 900000));
 
+// Create Admin Password Reset Request: Creates a reset request record for an admin user. Inputs: req, res, next. Returns: side effects and response to caller.
 export const createAdminPasswordResetRequest = async (req, res, next) => {
   try {
     const parsed = createPasswordResetRequestZodSchema.safeParse(req.body);
@@ -44,6 +47,7 @@ export const createAdminPasswordResetRequest = async (req, res, next) => {
   }
 };
 
+// Get Admin Password Reset Requests: Loads and returns all admin password reset requests. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getAdminPasswordResetRequests = async (req, res, next) => {
   try {
     const statusFilter = String(req.query.status || "ALL").toUpperCase();
@@ -66,6 +70,7 @@ export const getAdminPasswordResetRequests = async (req, res, next) => {
   }
 };
 
+// Review Admin Password Reset Request: Marks an admin reset request as approved or rejected. Inputs: req, res, next. Returns: a function result.
 export const reviewAdminPasswordResetRequest = async (req, res, next) => {
   try {
     if (!objectIdSchema.safeParse(req.params.id).success) {

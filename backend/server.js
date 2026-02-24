@@ -1,4 +1,5 @@
 // javascript
+// Server: Module level logic for the feature area.
 import express from "express";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";

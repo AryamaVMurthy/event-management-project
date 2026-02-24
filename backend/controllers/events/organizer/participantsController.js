@@ -1,3 +1,4 @@
+// Participants Controller: Controller level logic for the feature area.
 import { Registration } from "../../../models/Registration.js";
 import { errors } from "../../../utils/Errors.js";
 import {
@@ -8,6 +9,7 @@ import {
   toCsv,
 } from "../shared/index.js";
 
+// Get Organizer Event Participants: Loads participant list payload and pagination for organizer event. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getOrganizerEventParticipants = async (req, res, next) => {
   try {
     const event = await getEventForOrganizerOrAdminOr404(req.params.id, req.user);
@@ -18,6 +20,7 @@ export const getOrganizerEventParticipants = async (req, res, next) => {
   }
 };
 
+// Update Participant Attendance: Updates participant attendance based on input. Inputs: req, res, next. Returns: side effects and response to caller.
 export const updateParticipantAttendance = async (req, res, next) => {
   try {
     await getOrganizerEventOr404(req.params.id, req.user._id);
@@ -54,6 +57,7 @@ export const updateParticipantAttendance = async (req, res, next) => {
   }
 };
 
+// Export Organizer Event Participants: Runs Export organizer event participants flow. Inputs: req, res, next. Returns: a function result.
 export const exportOrganizerEventParticipants = async (req, res, next) => {
   try {
     const event = await getOrganizerEventOr404(req.params.id, req.user._id);

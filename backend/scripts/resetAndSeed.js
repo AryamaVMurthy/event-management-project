@@ -1,3 +1,4 @@
+// Reset And Seed: Startup helper level logic for the feature area.
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
@@ -24,6 +25,7 @@ for (const key of requiredEnv) {
   }
 }
 
+// Hash: Hashes a plain value for secure storage. Inputs: value. Returns: a function result.
 const hash = (value) => bcrypt.hash(value, 10);
 
 const categoriesSeed = [
@@ -143,6 +145,7 @@ const participantSeed = [
   },
 ];
 
+// Build Event Dates: Builds event dates for response or export. Inputs: none. Returns: a function result.
 const buildEventDates = () => {
   const now = Date.now();
   return {
@@ -169,6 +172,7 @@ const buildEventDates = () => {
   };
 };
 
+// Reset Collections: Clears and recreates selected collections for a clean local state. Inputs: none. Returns: a function result.
 const resetCollections = async () => {
   await AttendanceAuditLog.deleteMany({});
   await Ticket.deleteMany({});
@@ -183,6 +187,7 @@ const resetCollections = async () => {
   await OrganizationCategory.deleteMany({});
 };
 
+// Run: Starts the server module initialization flow. Inputs: none. Returns: a function result.
 const run = async () => {
   await mongoose.connect(process.env.MONGO_URI);
   console.log("Connected to MongoDB for reset+seed");

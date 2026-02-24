@@ -1,11 +1,13 @@
+// Ticket Controller: Controller level logic for the feature area.
 import { Ticket } from "../models/Ticket.js";
 import { Event } from "../models/Event.js";
 import { errors } from "../utils/Errors.js";
 
+// Is Participant Role: Checks whether a role corresponds to participant variants. Inputs: role. Returns: a function result.
 const isParticipantRole = (role) =>
   role === "IIIT_PARTICIPANT" || role === "NON_IIIT_PARTICIPANT";
 
-// GET /api/tickets/:ticketId
+// Get Ticket By Id: Gets ticket by id from persistence or request payload. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getTicketById = async (req, res, next) => {
   try {
     const ticketId = String(req.params.ticketId || "").trim();

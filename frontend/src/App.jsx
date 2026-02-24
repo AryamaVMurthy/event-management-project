@@ -1,3 +1,4 @@
+// App: Module level logic for the feature area.
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Login from './pages/Login';
@@ -21,6 +22,7 @@ import OrganizerProfile from './pages/OrganizerProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute'; 
 
+// App: Runs App flow. Inputs: none. Returns: a function result.
 export default function App() {
   return (
     <BrowserRouter>

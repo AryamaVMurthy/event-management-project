@@ -1,3 +1,4 @@
+// Index: Controller level logic for the feature area.
 export { listEvents } from "./listEventsController.js";
 export { getEventDetails } from "./detailsController.js";
 export { registerForEvent } from "./registerController.js";

@@ -1,16 +1,20 @@
 // backend/controllers/clubController.js
+// Club Controller: Controller level logic for the feature area.
 import bcrypt from "bcryptjs";
 import { Event } from "../models/Event.js";
 import { Organizer, OrganizationCategory } from "../models/User.js";
 import { errors } from "../utils/Errors.js";
 
+// Generate Random Password: Generates random password from existing data. Inputs: none. Returns: a function result.
 const generateRandomPassword = () => {
   return String(Math.floor(100000 + Math.random() * 900000));
 };
 
+// Normalize Name For Email: Normalizes names for email subject/body generation. Inputs: name. Returns: a function result.
 const normalizeNameForEmail = (name) =>
   name.toLowerCase().replace(/[^a-z0-9]/g, "");
 
+// Generate Organizer Email: Generates organizer email from existing data. Inputs: organizerName. Returns: a function result.
 const generateOrganizerEmail = async (organizerName) => {
   const base = normalizeNameForEmail(organizerName) || "club";
   for (let attempt = 0; attempt < 10; attempt += 1) {
@@ -22,6 +26,7 @@ const generateOrganizerEmail = async (organizerName) => {
   throw errors.serverError("Failed to generate unique organizer login email");
 };
 
+// Get All Clubs: Returns all clubs/organizations for the platform. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getAllClubs = async (req, res, next) => {
   try {
     const clubs = await Organizer.find({ accountStatus: "ACTIVE" })
@@ -32,6 +37,7 @@ export const getAllClubs = async (req, res, next) => {
   }
 };
 
+// Get All Categories: Gets all categories from persistence or request payload. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getAllCategories = async (req, res, next) => {
   try {
     const categories = await OrganizationCategory.find().sort({ name: 1 });
@@ -41,6 +47,7 @@ export const getAllCategories = async (req, res, next) => {
   }
 };
 
+// Create Category: Creates a new event category entry. Inputs: req, res, next. Returns: side effects and response to caller.
 export const createCategory = async (req, res, next) => {
   try {
     const { name, description } = req.body;
@@ -59,6 +66,7 @@ export const createCategory = async (req, res, next) => {
   }
 };
 
+// Get Club Events Public: Collects published events for one organizer club. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getClubEventsPublic = async (req, res, next) => {
   try {
     const club = await Organizer.findById(req.params.id)
@@ -124,6 +132,7 @@ export const getClubEventsPublic = async (req, res, next) => {
   }
 };
 
+// Create Club: Creates a new organizer club row. Inputs: req, res, next. Returns: side effects and response to caller.
 export const createClub = async (req, res, next) => {
   try {
     const { organizerName, category, description, contactNumber } = req.body;

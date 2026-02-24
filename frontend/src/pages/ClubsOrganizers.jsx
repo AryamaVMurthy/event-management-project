@@ -1,3 +1,4 @@
+// Clubs Organizers: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
@@ -7,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+// Normalize Ids: Normalizes ids into the expected shape. Inputs: values. Returns: a function result.
 const normalizeIds = (values = []) =>
   [...new Set(values.map((value) => String(value?._id || value)).filter(Boolean))];
 
+// Clubs Organizers: Runs Clubs organizers flow. Inputs: none. Returns: a function result.
 export default function ClubsOrganizers() {
   const [loading, setLoading] = useState(true);
   const [savingClubId, setSavingClubId] = useState("");
@@ -20,6 +23,7 @@ export default function ClubsOrganizers() {
   const [followedClubIds, setFollowedClubIds] = useState([]);
 
   useEffect(() => {
+    // Load Page: Loads page from API or cache. Inputs: none. Returns: a function result.
     const loadPage = async () => {
       try {
         const [clubsResponse, meResponse] = await Promise.all([
@@ -43,6 +47,7 @@ export default function ClubsOrganizers() {
     loadPage();
   }, []);
 
+  // Toggle Follow Club: Toggles follow club in the view. Inputs: clubId. Returns: a function result.
   const toggleFollowClub = async (clubId) => {
     setSavingClubId(clubId);
     setError("");

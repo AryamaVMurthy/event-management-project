@@ -1,5 +1,7 @@
+// Ticket Email: Module level logic for the feature area.
 import { sendEmail } from "./mailer.js";
 
+// Format Date Time: Converts date values into UI-facing formatted strings. Inputs: value. Returns: a function result.
 const formatDateTime = (value) => {
   if (!value) return "-";
   try {

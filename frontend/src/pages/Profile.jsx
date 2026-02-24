@@ -1,3 +1,4 @@
+// Profile: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+// Profile: Runs Profile flow. Inputs: none. Returns: a function result.
 export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -42,6 +44,7 @@ export default function Profile() {
   });
 
   useEffect(() => {
+    // Load Profile: Fetches profile, interest, and club data for editing context. Inputs: none. Returns: a function result.
     const loadProfile = async () => {
       try {
         const [profileResponse, interestsResponse, clubsResponse] = await Promise.all([
@@ -76,14 +79,17 @@ export default function Profile() {
     loadProfile();
   }, []);
 
+  // Handle Profile Change: Captures profile field updates from controlled inputs. Inputs: e. Returns: side effects and response to caller.
   const handleProfileChange = (e) => {
     setProfileData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Handle Password Change: Captures password field updates from controlled inputs. Inputs: e. Returns: side effects and response to caller.
   const handlePasswordChange = (e) => {
     setPasswordData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Handle Interest Checkbox: Handles interest checkbox in the UI flow. Inputs: interestId, checked. Returns: side effects and response to caller.
   const handleInterestCheckbox = (interestId, checked) => {
     setSelectedInterests((prev) =>
       checked
@@ -94,12 +100,14 @@ export default function Profile() {
     );
   };
 
+  // Handle Club Checkbox: Handles club checkbox in the UI flow. Inputs: clubId, checked. Returns: side effects and response to caller.
   const handleClubCheckbox = (clubId, checked) => {
     setSelectedClubs((prev) =>
       checked ? (prev.includes(clubId) ? prev : [...prev, clubId]) : prev.filter((id) => id !== clubId)
     );
   };
 
+  // Submit Profile: Submits profile to backend services. Inputs: e. Returns: side effects and response to caller.
   const submitProfile = async (e) => {
     e.preventDefault();
     setSavingProfile(true);
@@ -126,6 +134,7 @@ export default function Profile() {
     }
   };
 
+  // Submit Password: Submits password to backend services. Inputs: e. Returns: side effects and response to caller.
   const submitPassword = async (e) => {
     e.preventDefault();
     setSavingPassword(true);
@@ -142,6 +151,7 @@ export default function Profile() {
     }
   };
 
+  // Submit Interests: Submits interests to backend services. Inputs: e. Returns: side effects and response to caller.
   const submitInterests = async (e) => {
     e.preventDefault();
     setSavingInterests(true);
@@ -160,6 +170,7 @@ export default function Profile() {
     }
   };
 
+  // Submit Followed Clubs: Submits followed clubs to backend services. Inputs: e. Returns: side effects and response to caller.
   const submitFollowedClubs = async (e) => {
     e.preventDefault();
     setSavingClubs(true);

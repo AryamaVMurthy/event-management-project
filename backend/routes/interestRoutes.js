@@ -1,4 +1,5 @@
 // backend/routes/interestRoutes.js
+// Interest Routes: Route level logic for the feature area.
 import express from "express";
 import { protect, restrictTo } from "../middleware/authMiddleware.js";
 import {

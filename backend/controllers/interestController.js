@@ -1,7 +1,9 @@
 // backend/controllers/interestController.js
+// Interest Controller: Controller level logic for the feature area.
 import { Interest } from "../models/User.js";
 import { errors } from "../utils/Errors.js";
 
+// Get All Interests: Returns all interest entries. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getAllInterests = async (req, res, next) => {
   try {
     const interests = await Interest.find({ isActive: true });
@@ -12,6 +14,7 @@ export const getAllInterests = async (req, res, next) => {
 };
 
 // POST /api/interests
+// Create Interest: Creates a new interest taxonomy entry. Inputs: req, res, next. Returns: side effects and response to caller.
 export const createInterest = async (req, res, next) => {
   try {
     const { name, description } = req.body;
@@ -37,7 +40,7 @@ export const createInterest = async (req, res, next) => {
   }
 };
 
-// PUT /api/interests/:id
+// Update Interest: Updates interest metadata. Inputs: req, res, next. Returns: side effects and response to caller.
 export const updateInterest = async (req, res, next) => {
   try {
     const { name, description, isActive } = req.body;
@@ -73,7 +76,7 @@ export const updateInterest = async (req, res, next) => {
   }
 };
 
-// DELETE /api/interests/:id
+// Delete Interest: Deletes an interest taxonomy record. Inputs: req, res, next. Returns: side effects and response to caller.
 export const deleteInterest = async (req, res, next) => {
   try {
     const interest = await Interest.findByIdAndUpdate(

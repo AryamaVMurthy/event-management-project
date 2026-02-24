@@ -1,3 +1,4 @@
+// Merch Approval Controller: Controller level logic for the feature area.
 import { Registration } from "../../../models/Registration.js";
 import { MERCH_PAYMENT_STATUSES } from "../../../models/constants.js";
 import { Ticket } from "../../../models/Ticket.js";
@@ -10,6 +11,7 @@ import {
   createTicketForRegistration,
 } from "../shared/index.js";
 
+// Parse Payment Status Filter: Normalizes incoming payment status filter input. Inputs: query. Returns: a function result.
 const parsePaymentStatusFilter = (query) => {
   const raw = String(query.paymentStatus || query.status || "ALL")
     .trim()
@@ -23,6 +25,7 @@ const parsePaymentStatusFilter = (query) => {
   return raw;
 };
 
+// To Order Row: Converts a ticket/order model into a flat export row. Inputs: registration. Returns: a function result.
 const toOrderRow = (registration) => {
   const participant = registration.participantId || {};
   const merch = registration.merchPurchase || {};
@@ -90,6 +93,7 @@ export const getMerchOrderForOrganizerOrAdmin = async ({
   return { event, registration };
 };
 
+// List Merch Orders For Organizer Event: Lists merchandise orders for an organizer-managed event. Inputs: req, res, next. Returns: a function result.
 export const listMerchOrdersForOrganizerEvent = async (req, res, next) => {
   try {
     const event = await getEventForOrganizerOrAdminOr404(req.params.id, req.user);
@@ -121,6 +125,7 @@ export const listMerchOrdersForOrganizerEvent = async (req, res, next) => {
   }
 };
 
+// Parse Review Payload: Parses request body for review action and optional comments. Inputs: body. Returns: a function result.
 const parseReviewPayload = (body) => {
   const status = String(body?.status || "")
     .trim()
@@ -135,6 +140,7 @@ const parseReviewPayload = (body) => {
   return { status, reviewComment };
 };
 
+// Review Merch Order For Organizer Event: Reviews a single merch order within an organizer event context. Inputs: req, res, next. Returns: a function result.
 export const reviewMerchOrderForOrganizerEvent = async (req, res, next) => {
   try {
     const { event, registration } = await getMerchOrderForOrganizerOrAdmin({

@@ -1,3 +1,4 @@
+// Env: Configuration level logic for the feature area.
 import dotenv from "dotenv";
 import { z } from "zod";
 

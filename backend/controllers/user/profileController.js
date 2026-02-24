@@ -1,6 +1,8 @@
+// Profile Controller: Controller level logic for the feature area.
 import { User, OrganizationCategory } from "../../models/User.js";
 import { errors } from "../../utils/Errors.js";
 
+// Get Me: Gets me from persistence or request payload. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
@@ -15,6 +17,7 @@ export const getMe = async (req, res, next) => {
   }
 };
 
+// Update Profile: Persists profile updates for logged-in users. Inputs: req, res, next. Returns: side effects and response to caller.
 export const updateProfile = async (req, res, next) => {
   try {
     const user = req.user;

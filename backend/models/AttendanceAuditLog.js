@@ -1,3 +1,4 @@
+// Attendance Audit Log: Model level logic for the feature area.
 import mongoose from "mongoose";
 
 const ATTENDANCE_AUDIT_ACTIONS = [

@@ -1,9 +1,12 @@
+// Trending Service: Controller level logic for the feature area.
 import { Event } from "../../../../models/Event.js";
 import { Registration } from "../../../../models/Registration.js";
 import { getBaseEventSummary } from "../../shared/index.js";
 
+// Normalize Tag: Normalizes tag into the expected shape. Inputs: value. Returns: a function result.
 export const normalizeTag = (value) => String(value || "").trim().toLowerCase();
 
+// Get Trending Events: Finds events sorted by registration activity and recency signals. Inputs: none. Returns: a Promise with payload data.
 export const getTrendingEvents = async () => {
   const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
 

@@ -1,3 +1,4 @@
+// Organizers Controller: Controller level logic for the feature area.
 import { z } from "zod";
 import { Organizer } from "../../models/User.js";
 import { errors } from "../../utils/Errors.js";
@@ -11,6 +12,7 @@ const objectIdSchema = z.string().trim().refine((value) => /^[a-fA-F0-9]{24}$/.t
   message: "Invalid id",
 });
 
+// Get Admin Organizers: Lists organizers with aggregate counts for admin oversight. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getAdminOrganizers = async (req, res, next) => {
   try {
     const statusFilter = String(req.query.status || "ALL").toUpperCase();
@@ -41,6 +43,7 @@ export const getAdminOrganizers = async (req, res, next) => {
   }
 };
 
+// Update Organizer Status: Approves, suspends, or updates organizer active status. Inputs: req, res, next. Returns: side effects and response to caller.
 export const updateOrganizerStatus = async (req, res, next) => {
   try {
     if (!objectIdSchema.safeParse(req.params.id).success) {
@@ -84,6 +87,7 @@ export const updateOrganizerStatus = async (req, res, next) => {
   }
 };
 
+// Delete Organizer Permanent: Permanently removes organizer and related data. Inputs: req, res, next. Returns: side effects and response to caller.
 export const deleteOrganizerPermanent = async (req, res, next) => {
   try {
     if (!objectIdSchema.safeParse(req.params.id).success) {

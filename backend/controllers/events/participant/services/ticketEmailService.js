@@ -1,7 +1,9 @@
+// Ticket Email Service: Controller level logic for the feature area.
 import { User } from "../../../../models/User.js";
 import { errors } from "../../../../utils/Errors.js";
 import { sendTicketEmail } from "../../../../utils/ticketEmail.js";
 
+// Send Ticket Email Strict: sends ticket confirmation and logs delivery outcomes.
 export const sendTicketEmailStrict = async ({
   participantId,
   event,

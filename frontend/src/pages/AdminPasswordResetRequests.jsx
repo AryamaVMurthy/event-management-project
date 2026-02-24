@@ -1,3 +1,4 @@
+// Admin Password Reset Requests: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import AdminNavbar from "../components/AdminNavbar";
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Admin Password Reset Requests: Runs Admin password reset requests flow. Inputs: none. Returns: a function result.
 export default function AdminPasswordResetRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,6 +24,7 @@ export default function AdminPasswordResetRequests() {
 
   const [reviewComment, setReviewComment] = useState("");
 
+  // Load Data: Fetches the primary dataset for the current screen. Inputs: status. Returns: a function result.
   const loadData = async (status = statusFilter) => {
     setLoading(true);
     try {
@@ -39,6 +42,7 @@ export default function AdminPasswordResetRequests() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Review Request: Records approval/rejection outcome and emits structured response text. Inputs: requestId, status. Returns: a function result.
   const reviewRequest = async (requestId, status) => {
     setError("");
     setMessage("");
@@ -57,6 +61,7 @@ export default function AdminPasswordResetRequests() {
     }
   };
 
+  // Apply Filter: Applies filter to current state. Inputs: event. Returns: a function result.
   const applyFilter = async (event) => {
     event.preventDefault();
     await loadData(statusFilter);

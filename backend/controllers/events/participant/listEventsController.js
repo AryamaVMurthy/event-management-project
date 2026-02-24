@@ -1,3 +1,4 @@
+// List Events Controller: Controller level logic for the feature area.
 import { Event } from "../../../models/Event.js";
 import { User } from "../../../models/User.js";
 import { errors } from "../../../utils/Errors.js";
@@ -11,6 +12,7 @@ import {
 } from "../shared/index.js";
 import { getTrendingEvents, normalizeTag } from "./services/trendingService.js";
 
+// List Events: Lists public/personal events based on filters and caller context. Inputs: req, res, next. Returns: a function result.
 export const listEvents = async (req, res, next) => {
   try {
     if (!isParticipantRole(req.user.role)) {

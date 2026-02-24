@@ -1,3 +1,4 @@
+// Payment Proof Controller: Controller level logic for the feature area.
 import { Registration } from "../../../models/Registration.js";
 import { MERCH_PAYMENT_STATUSES } from "../../../models/constants.js";
 import { errors } from "../../../utils/Errors.js";
@@ -19,6 +20,7 @@ const PAYMENT_PROOF_ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
 ]);
 
+// Can Access Payment Proof: Can access payment proof. Inputs: registration, reqUser. Returns: a function result.
 const canAccessPaymentProof = (registration, reqUser) => {
   if (isParticipantRole(reqUser.role)) {
     return String(registration.participantId) === String(reqUser._id);
@@ -35,6 +37,7 @@ const canAccessPaymentProof = (registration, reqUser) => {
   return false;
 };
 
+// Get Registration With Event Or404: Loads registration payload and the linked event, failing if missing. Inputs: registrationId. Returns: a Promise with payload data.
 const getRegistrationWithEventOr404 = async (registrationId) => {
   if (!isObjectId(registrationId)) {
     throw errors.badRequest("Invalid registration id");
@@ -63,6 +66,7 @@ const getRegistrationWithEventOr404 = async (registrationId) => {
   return registration;
 };
 
+// To Proof Metadata: Extracts standardized metadata from stored proof files. Inputs: registration. Returns: a function result.
 const toProofMetadata = (registration) => ({
   registrationId: String(registration._id),
   eventId: String(registration.eventId?._id || registration.eventId),
@@ -87,6 +91,7 @@ const toProofMetadata = (registration) => ({
     : null,
 });
 
+// Assert Participant Owns Registration: Guards operations on registrations to enforce user ownership. Inputs: registration, reqUser. Returns: a function result.
 const assertParticipantOwnsRegistration = (registration, reqUser) => {
   if (!isParticipantRole(reqUser.role)) {
     throw errors.forbidden("Only participants can upload payment proof");
@@ -97,6 +102,7 @@ const assertParticipantOwnsRegistration = (registration, reqUser) => {
   }
 };
 
+// Assert Upload Allowed For Status: Checks whether the current registration status accepts uploads. Inputs: status. Returns: a function result.
 const assertUploadAllowedForStatus = (status) => {
   if (status === "PENDING_APPROVAL") {
     throw errors.conflict("Payment proof already submitted and pending review");
@@ -109,6 +115,7 @@ const assertUploadAllowedForStatus = (status) => {
   }
 };
 
+// Upload Payment Proof: Uploads payment proof to storage. Inputs: req, res, next. Returns: a function result.
 export const uploadPaymentProof = async (req, res, next) => {
   try {
     const registration = await getRegistrationWithEventOr404(req.params.registrationId);
@@ -165,6 +172,7 @@ export const uploadPaymentProof = async (req, res, next) => {
   }
 };
 
+// Get Payment Proof: Gets payment proof from persistence or request payload. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getPaymentProof = async (req, res, next) => {
   try {
     const registration = await getRegistrationWithEventOr404(req.params.registrationId);

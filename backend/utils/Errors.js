@@ -1,7 +1,9 @@
+// Errors: Module level logic for the feature area.
 /**
  * Simple Error Handler with Common Error Codes
  */
 
+// Error Handler: Runs Error handler flow. Inputs: message, statusCode, code. Returns: a function result.
 const errorHandler = (message, statusCode = 400, code) => {
   const error = new Error(message);
   error.statusCode = statusCode;

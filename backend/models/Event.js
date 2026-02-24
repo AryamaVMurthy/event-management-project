@@ -1,3 +1,4 @@
+// Event: Model level logic for the feature area.
 import mongoose from "mongoose";
 import { z } from "zod";
 import {
@@ -68,6 +69,7 @@ const eventSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Validate Event: enforces event date and schema consistency before saving.
 eventSchema.pre("validate", function validateEvent() {
   if (
     this.registrationDeadline &&
@@ -183,6 +185,7 @@ const eventBaseZodSchema = z.object({
   items: z.array(eventMerchItemZodSchema).optional().default([]),
 });
 
+// Create Event Zod Schema: validates new event payloads with cross-field business rules.
 const createEventZodSchema = eventBaseZodSchema.superRefine((event, ctx) => {
   if (event.registrationDeadline > event.startDate) {
     ctx.addIssue({

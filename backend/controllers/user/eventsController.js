@@ -1,7 +1,9 @@
+// Events Controller: Controller level logic for the feature area.
 import { Registration } from "../../models/Registration.js";
 import { Ticket } from "../../models/Ticket.js";
 import { errors } from "../../utils/Errors.js";
 
+// Get My Events: Loads a participant-facing upcoming and past event payload. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getMyEvents = async (req, res, next) => {
   try {
     const isParticipant =

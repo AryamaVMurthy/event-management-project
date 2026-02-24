@@ -1,3 +1,4 @@
+// Admin Dashboard: Module level logic for the feature area.
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import AdminNavbar from "../components/AdminNavbar";
 
+// Admin Dashboard: Runs Admin dashboard flow. Inputs: none. Returns: a function result.
 export default function AdminDashboard() {
   return (
     <div className="space-y-4">

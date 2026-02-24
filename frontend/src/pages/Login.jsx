@@ -1,3 +1,4 @@
+// Login: Module level logic for the feature area.
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -14,18 +15,21 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+// Login: Runs Login flow. Inputs: none. Returns: a function result.
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  // Get Dashboard Route: Maps authenticated user role to the correct landing dashboard route. Inputs: role. Returns: a Promise with payload data.
   const getDashboardRoute = (role) => {
     if (role === "admin") return "/admin/dashboard";
     if (role === "organizer") return "/organizer/dashboard";
     return "/dashboard";
   };
 
+  // Handle Submit: Validates local state and sends form values to the configured API action. Inputs: e. Returns: side effects and response to caller.
   const handleSubmit = async (e) => {
     e.preventDefault();
     

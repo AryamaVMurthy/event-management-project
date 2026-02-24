@@ -1,3 +1,4 @@
+// Register: Module level logic for the feature area.
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
@@ -24,6 +25,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+// Register: Runs Register flow. Inputs: none. Returns: a function result.
 export default function Register() {
   const batchOptions = ['UG1', 'UG2', 'UG3', 'UG4', 'MS', 'Mtech', 'PhD', 'PDM'];
   const [loadingOptions, setLoadingOptions] = useState(true);
@@ -45,6 +47,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
+  // Get Dashboard Route: Maps authenticated user role to the correct landing dashboard route. Inputs: role. Returns: a Promise with payload data.
   const getDashboardRoute = (role) => {
     if (role === "admin") return "/admin/dashboard";
     if (role === "organizer") return "/organizer/dashboard";
@@ -52,6 +55,7 @@ export default function Register() {
   };
 
   useEffect(() => {
+    // Load Preferences Options: Loads interests and clubs options for signup preferences. Inputs: none. Returns: a function result.
     const loadPreferencesOptions = async () => {
       try {
         const [interestsResponse, clubsResponse] = await Promise.all([
@@ -70,21 +74,25 @@ export default function Register() {
     loadPreferencesOptions();
   }, []);
 
+  // Handle Change: Updates local form state based on a generic input event. Inputs: e. Returns: side effects and response to caller.
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError('');
   };
 
+  // Handle Participant Type Change: Sets participant type and clears downstream conditional validation state. Inputs: value. Returns: side effects and response to caller.
   const handleParticipantTypeChange = (value) => {
     setFormData((prev) => ({ ...prev, participantType: value }));
     setError('');
   };
 
+  // Handle Batch Change: Stores the selected batch value in form state. Inputs: value. Returns: side effects and response to caller.
   const handleBatchChange = (value) => {
     setFormData((prev) => ({ ...prev, batch: value }));
     setError('');
   };
 
+  // Handle Interest Change: Adds or removes a selected interest in local selection state. Inputs: id, checked. Returns: side effects and response to caller.
   const handleInterestChange = (id, checked) => {
     setFormData((prev) => ({
       ...prev,
@@ -94,6 +102,7 @@ export default function Register() {
     }));
   };
 
+  // Handle Club Change: Adds or removes a selected club in local selection state. Inputs: id, checked. Returns: side effects and response to caller.
   const handleClubChange = (id, checked) => {
     setFormData((prev) => ({
       ...prev,
@@ -103,26 +112,26 @@ export default function Register() {
     }));
   };
 
+  // Handle Submit: Validates local state and sends form values to the configured API action. Inputs: e. Returns: side effects and response to caller.
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-  if (
-  !formData.email ||
-  !formData.password ||
-  !formData.firstName ||
-  !formData.lastName ||
-  !formData.contactNumber ||
-  !formData.participantType
-) {
-  setError("All fields required");
-  return;
-}
 
-if (formData.participantType === "NON_IIIT_PARTICIPANT" && !formData.collegeOrgName) {
-  setError("College is required for Non-IIIT participants");
-  return;
-}
+    if (
+      !formData.email ||
+      !formData.password ||
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.contactNumber ||
+      !formData.participantType
+    ) {
+      setError("All fields required");
+      return;
+    }
 
+    if (formData.participantType === "NON_IIIT_PARTICIPANT" && !formData.collegeOrgName) {
+      setError("College is required for Non-IIIT participants");
+      return;
+    }
 
     if (formData.participantType === 'IIIT_PARTICIPANT') {
       const iiitRegex = /@.*\.iiit\.ac\.in$/;

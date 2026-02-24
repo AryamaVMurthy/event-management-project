@@ -1,6 +1,8 @@
+// Participants Table: Controller level logic for the feature area.
 import { Registration } from "../../../models/Registration.js";
 import { Ticket } from "../../../models/Ticket.js";
 
+// Build Participant Rows: Builds participant rows for response or export. Inputs: event, query. Returns: a function result.
 export const buildParticipantRows = async (event, query = {}) => {
   const findQuery = { eventId: event._id };
   if (query.status) {
@@ -67,7 +69,9 @@ export const buildParticipantRows = async (event, query = {}) => {
   });
 };
 
+// To Csv: Transforms registration rows into CSV-ready entries. Inputs: headers, rows. Returns: a function result.
 export const toCsv = (headers, rows) => {
+  // Escape Cell: Runs Escape cell flow. Inputs: value. Returns: a function result.
   const escapeCell = (value) => {
     const text = String(value ?? "");
     if (text.includes(",") || text.includes('"') || text.includes("\n")) {

@@ -1,9 +1,11 @@
+// Analytics Controller: Controller level logic for the feature area.
 import { Registration } from "../../../models/Registration.js";
 import {
   handleControllerError,
   getOrganizerEventOr404,
 } from "../shared/index.js";
 
+// Get Organizer Event Analytics: Returns event dashboard stats and attendance/registration breakdown. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getOrganizerEventAnalytics = async (req, res, next) => {
   try {
     const event = await getOrganizerEventOr404(req.params.id, req.user._id);

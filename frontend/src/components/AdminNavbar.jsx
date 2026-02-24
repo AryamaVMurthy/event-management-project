@@ -1,3 +1,4 @@
+// Admin Navbar: Module level logic for the feature area.
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { Button } from "@/components/ui/button";
@@ -8,11 +9,13 @@ const menu = [
   { label: "Password Reset Requests", to: "/admin/password-reset-requests" },
 ];
 
+// Admin Navbar: Runs Admin navbar flow. Inputs: none. Returns: a function result.
 export default function AdminNavbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
 
+  // Handle Logout: Handles logout in the UI flow. Inputs: none. Returns: side effects and response to caller.
   const handleLogout = async () => {
     await logout();
     navigate("/login");

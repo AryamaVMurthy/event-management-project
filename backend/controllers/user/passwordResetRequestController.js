@@ -1,9 +1,11 @@
+// Password Reset Request Controller: Controller level logic for the feature area.
 import {
   PasswordResetRequest,
   createPasswordResetRequestZodSchema,
 } from "../../models/PasswordResetRequest.js";
 import { errors } from "../../utils/Errors.js";
 
+// Create Organizer Password Reset Request: Creates a reset request record for an organizer account. Inputs: req, res, next. Returns: side effects and response to caller.
 export const createOrganizerPasswordResetRequest = async (req, res, next) => {
   try {
     if (req.user.role !== "organizer") {
@@ -45,6 +47,7 @@ export const createOrganizerPasswordResetRequest = async (req, res, next) => {
   }
 };
 
+// Get Organizer Password Reset Requests: Fetches organizer reset requests for approval workflow. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getOrganizerPasswordResetRequests = async (req, res, next) => {
   try {
     if (req.user.role !== "organizer") {

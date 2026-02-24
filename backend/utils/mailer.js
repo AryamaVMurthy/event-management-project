@@ -1,3 +1,4 @@
+// Mailer: Module level logic for the feature area.
 import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
 
@@ -5,6 +6,7 @@ let cachedTransporter = null;
 let verifiedAt = null;
 const emailDisabledReason = "EMAIL_MODE=disabled";
 
+// Create Transporter: Creates transporter from input data. Inputs: none. Returns: side effects and response to caller.
 const createTransporter = () =>
   nodemailer.createTransport({
     host: env.SMTP_HOST,
@@ -16,6 +18,7 @@ const createTransporter = () =>
     },
   });
 
+// Get Transporter: Gets transporter from persistence or request payload. Inputs: none. Returns: a Promise with payload data.
 const getTransporter = () => {
   if (!cachedTransporter) {
     cachedTransporter = createTransporter();
@@ -23,6 +26,7 @@ const getTransporter = () => {
   return cachedTransporter;
 };
 
+// Init Mailer: Initializes and validates SMTP transport on boot or request. Inputs: none. Returns: a function result.
 export const initMailer = async () => {
   if (env.EMAIL_MODE === "disabled") {
     verifiedAt = null;
@@ -55,6 +59,7 @@ export const initMailer = async () => {
   }
 };
 
+// Send Email: Sends an outbound email using configured transport and environment. Inputs: {, subject, text, html. Returns: a function result.
 export const sendEmail = async ({ to, subject, text, html }) => {
   if (env.EMAIL_MODE === "disabled") {
     return {
@@ -98,6 +103,7 @@ export const sendEmail = async ({ to, subject, text, html }) => {
   }
 };
 
+// Get Mailer Status: Returns current SMTP verification state for observability. Inputs: none. Returns: a Promise with payload data.
 export const getMailerStatus = () => ({
   ok: env.EMAIL_MODE === "disabled" ? false : Boolean(verifiedAt),
   mode: env.EMAIL_MODE === "disabled" ? "disabled" : "smtp",
@@ -107,6 +113,7 @@ export const getMailerStatus = () => ({
   fallback_reason: env.EMAIL_MODE === "disabled" ? emailDisabledReason : null,
 });
 
+// Reset Mailer For Tests: Forces mailer status override for deterministic testing. Inputs: none. Returns: a function result.
 export const resetMailerForTests = () => {
   cachedTransporter = null;
   verifiedAt = null;

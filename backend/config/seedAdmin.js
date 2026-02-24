@@ -1,7 +1,9 @@
+// Seed Admin: Configuration level logic for the feature area.
 import bcrypt from "bcryptjs";
 import { Admin } from "../models/User.js";
 import { env } from "./env.js";
 
+// Seed Admin: Bootstraps admin user from environment values if missing. Inputs: none. Returns: a function result.
 export const seedAdmin = async () => {
   try {
     // Check if admin already exists

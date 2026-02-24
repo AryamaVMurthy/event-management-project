@@ -1,3 +1,4 @@
+// Checkbox: Module level logic for the feature area.
 "use client"
 
 import * as React from "react"
@@ -6,6 +7,7 @@ import { Check } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+// Checkbox: renders a ref-forwarding checkbox root with icon slot.
 const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
   <CheckboxPrimitive.Root
     ref={ref}

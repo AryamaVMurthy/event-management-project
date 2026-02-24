@@ -1,3 +1,4 @@
+// Index: Controller level logic for the feature area.
 export { getAdminCategories } from "./categoriesController.js";
 
 export {

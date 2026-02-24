@@ -1,3 +1,4 @@
+// Query And Search: Controller level logic for the feature area.
 import Fuse from "fuse.js";
 import { z } from "zod";
 import { ELIGIBILITY_TYPES, EVENT_TYPES } from "../../../models/constants.js";
@@ -55,13 +56,16 @@ export const listEventsQuerySchema = z
     }
   });
 
+// Parse List Events Query: Parses list query parameters into typed filters. Inputs: query. Returns: a function result.
 export const parseListEventsQuery = (query) => listEventsQuerySchema.parse(query);
 
+// To Search Blob: ToSearchBlob. Converts search blob into a new representation. Inputs: event. Returns: a function result.
 const toSearchBlob = (event) =>
   `${String(event.name || "")} ${String(event.organizerId?.organizerName || "")}`
     .trim()
     .toLowerCase();
 
+// Fuzzy Token Search With Fuse: Runs Fuzzy token search with fuse flow. Inputs: events, searchText. Returns: a function result.
 export const fuzzyTokenSearchWithFuse = (events, searchText) => {
   const normalizedSearch = String(searchText || "").trim().toLowerCase();
   if (!normalizedSearch) {

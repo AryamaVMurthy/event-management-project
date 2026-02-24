@@ -1,3 +1,4 @@
+// Organizer Create Event: Module level logic for the feature area.
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
@@ -14,6 +15,7 @@ const eventTypeOptions = ["NORMAL", "MERCHANDISE"];
 const eligibilityOptions = ["ALL", "IIIT_ONLY", "NON_IIIT_ONLY"];
 const formFieldTypes = ["text", "dropdown", "checkbox", "file"];
 
+// Default Field: Runs Default field flow. Inputs: none. Returns: a function result.
 const defaultField = () => ({
   type: "text",
   label: "",
@@ -23,6 +25,7 @@ const defaultField = () => ({
   allowedMimeTypesText: "",
 });
 
+// Default Item: Runs Default item flow. Inputs: none. Returns: a function result.
 const defaultItem = () => ({
   name: "",
   description: "",
@@ -38,6 +41,7 @@ const defaultItem = () => ({
   ],
 });
 
+// Organizer Create Event: Runs Organizer create event flow. Inputs: none. Returns: a function result.
 export default function OrganizerCreateEvent() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -111,10 +115,12 @@ export default function OrganizerCreateEvent() {
     [items]
   );
 
+  // Update Field: Updates field based on input. Inputs: key, value. Returns: side effects and response to caller.
   const updateField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  // Submit: Submits the pending action payload to backend services. Inputs: event. Returns: side effects and response to caller.
   const submit = async (event) => {
     event.preventDefault();
     setSubmitting(true);

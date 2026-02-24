@@ -1,3 +1,4 @@
+// Admin Organizer Events: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../lib/api";
@@ -5,6 +6,7 @@ import AdminNavbar from "../components/AdminNavbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// To Local: ToLocal. Converts local into a new representation. Inputs: value. Returns: a function result.
 const toLocal = (value) => {
   if (!value) return "-";
   try {
@@ -14,6 +16,7 @@ const toLocal = (value) => {
   }
 };
 
+// Admin Organizer Events: Runs Admin organizer events flow. Inputs: none. Returns: a function result.
 export default function AdminOrganizerEvents() {
   const { organizerId } = useParams();
   const [loading, setLoading] = useState(true);
@@ -22,6 +25,7 @@ export default function AdminOrganizerEvents() {
   const [organizerName, setOrganizerName] = useState("");
 
   useEffect(() => {
+    // Load: Loads the requested resources from API or cache. Inputs: none. Returns: a Promise with payload data.
     const load = async () => {
       if (!organizerId) return;
       setLoading(true);

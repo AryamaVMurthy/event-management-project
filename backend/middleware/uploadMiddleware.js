@@ -1,3 +1,4 @@
+// Upload Middleware: Middleware level logic for the feature area.
 import multer from "multer";
 import { errors } from "../utils/Errors.js";
 import { env } from "../config/env.js";
@@ -15,6 +16,7 @@ const upload = multer({
 export const uploadRegistrationFiles = upload.any();
 export const uploadPaymentProof = upload.single("paymentProof");
 
+// Handle Upload Error: Handles upload error in the UI flow. Inputs: err, req, res, next. Returns: side effects and response to caller.
 export const handleUploadError = (err, req, res, next) => {
   if (!err) return next();
   if (err instanceof multer.MulterError) {

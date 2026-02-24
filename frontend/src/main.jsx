@@ -1,3 +1,4 @@
+// Main: Module level logic for the feature area.
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';

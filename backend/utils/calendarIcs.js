@@ -1,7 +1,9 @@
+// Calendar Ics: Module level logic for the feature area.
 import crypto from "crypto";
 
 const ICS_LINE_BREAK = "\r\n";
 
+// To Utc Timestamp: Converts date values to a UTC timestamp string. Inputs: value. Returns: a function result.
 const toUtcTimestamp = (value) => {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -10,6 +12,7 @@ const toUtcTimestamp = (value) => {
   return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 };
 
+// Escape Text: Runs Escape text flow. Inputs: value. Returns: a function result.
 const escapeText = (value) =>
   String(value || "")
     .replace(/\\/g, "\\\\")
@@ -17,6 +20,7 @@ const escapeText = (value) =>
     .replace(/,/g, "\\,")
     .replace(/;/g, "\\;");
 
+// Fold Line: Runs Fold line flow. Inputs: line. Returns: a function result.
 const foldLine = (line) => {
   if (line.length <= 75) {
     return line;
@@ -32,6 +36,7 @@ const foldLine = (line) => {
   return chunks.join(ICS_LINE_BREAK);
 };
 
+// Build Reminder Block: Builds reminder block for response or export. Inputs: reminderMinutes. Returns: a function result.
 const buildReminderBlock = (reminderMinutes) => {
   const parsed = Number(reminderMinutes);
   if (!Number.isInteger(parsed) || parsed <= 0) {

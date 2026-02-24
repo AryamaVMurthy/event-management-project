@@ -1,3 +1,4 @@
+// Organizer Detail: Module level logic for the feature area.
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../lib/api";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+// To Local Date Time: Converts UTC or ISO date values to local date-time text. Inputs: value. Returns: a function result.
 const toLocalDateTime = (value) => {
   if (!value) return "-";
   try {
@@ -15,6 +17,7 @@ const toLocalDateTime = (value) => {
   }
 };
 
+// Organizer Detail: Runs Organizer detail flow. Inputs: none. Returns: a function result.
 export default function OrganizerDetail() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
@@ -25,6 +28,7 @@ export default function OrganizerDetail() {
   const [activeTab, setActiveTab] = useState("upcoming");
 
   useEffect(() => {
+    // Load Organizer: Loads organizer profile data for a detail view. Inputs: none. Returns: a function result.
     const loadOrganizer = async () => {
       setLoading(true);
       setError("");

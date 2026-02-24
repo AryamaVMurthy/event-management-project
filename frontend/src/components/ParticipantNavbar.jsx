@@ -1,3 +1,4 @@
+// Participant Navbar: Module level logic for the feature area.
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,13 @@ const navItems = [
   { label: "Profile", to: "/profile" },
 ];
 
+// Participant Navbar: Runs Participant navbar flow. Inputs: none. Returns: a function result.
 export default function ParticipantNavbar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
 
+  // Handle Logout: Handles logout in the UI flow. Inputs: none. Returns: side effects and response to caller.
   const handleLogout = async () => {
     await logout();
     navigate("/login");

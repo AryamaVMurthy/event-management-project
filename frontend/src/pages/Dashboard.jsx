@@ -1,3 +1,4 @@
+// Dashboard: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/useAuth";
 import { Link, Navigate } from "react-router-dom";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import api from "../lib/api";
 import ParticipantNavbar from "../components/ParticipantNavbar";
 
+// Dashboard: Runs Dashboard flow. Inputs: none. Returns: a function result.
 export default function Dashboard() {
   const { user } = useAuth();
 
@@ -36,6 +38,7 @@ export default function Dashboard() {
   const [downloadingBatchCalendar, setDownloadingBatchCalendar] = useState(false);
 
   useEffect(() => {
+    // Load My Events: Loads current and historical registrations for a participant dashboard. Inputs: none. Returns: a function result.
     const loadMyEvents = async () => {
       try {
         const response = await api.get("/user/my-events");
@@ -58,6 +61,7 @@ export default function Dashboard() {
     loadMyEvents();
   }, []);
 
+  // Get Dashboard Route: Maps authenticated user role to the correct landing dashboard route. Inputs: role. Returns: a Promise with payload data.
   const getDashboardRoute = (role) => {
     if (role === "admin") return "/admin/dashboard";
     if (role === "organizer") return "/organizer/dashboard";
@@ -78,6 +82,7 @@ export default function Dashboard() {
 
   const activeHistoryRows = history?.[activeTab] || [];
 
+  // Load Files: Loads files linked to a registration or registration field. Inputs: registrationId. Returns: a function result.
   const loadFiles = async (registrationId) => {
     setLoadingFilesFor(registrationId);
     setError("");
@@ -94,6 +99,7 @@ export default function Dashboard() {
     }
   };
 
+  // Download File: Downloads and prompts a file attachment for a given registration context. Inputs: registrationId, fieldId, fileName. Returns: a function result.
   const downloadFile = async (registrationId, fieldId, fileName) => {
     setError("");
     try {
@@ -113,6 +119,7 @@ export default function Dashboard() {
     }
   };
 
+  // Download Calendar Ics: Downloads registration-based ICS file through browser blob flow. Inputs: registrationId, eventName. Returns: a function result.
   const downloadCalendarIcs = async (registrationId, eventName) => {
     setDownloadingCalendarFor(registrationId);
     setError("");
@@ -139,6 +146,7 @@ export default function Dashboard() {
     }
   };
 
+  // Toggle Calendar Selection: Toggles selected registrations for batch calendar actions. Inputs: record. Returns: a function result.
   const toggleCalendarSelection = (record) => {
     setSelectedRegistrations((prev) => {
       const next = { ...prev };
@@ -154,10 +162,12 @@ export default function Dashboard() {
     });
   };
 
+  // Clear Calendar Selection: Clears accumulated registration selections. Inputs: none. Returns: a function result.
   const clearCalendarSelection = () => {
     setSelectedRegistrations({});
   };
 
+  // Download Batch Calendar Ics: Builds a combined ICS export across multiple registrations. Inputs: none. Returns: a function result.
   const downloadBatchCalendarIcs = async () => {
     const registrationIds = Object.keys(selectedRegistrations);
     if (registrationIds.length === 0) {
@@ -193,6 +203,7 @@ export default function Dashboard() {
     }
   };
 
+  // Load Calendar Links: Fetches prebuilt links for adding registration events to calendars. Inputs: registrationId. Returns: a function result.
   const loadCalendarLinks = async (registrationId) => {
     setLoadingCalendarLinksFor(registrationId);
     setError("");
@@ -209,6 +220,7 @@ export default function Dashboard() {
     }
   };
 
+  // Render Record: Renders record as markup. Inputs: record. Returns: a function result.
   const renderRecord = (record) => (
     <Card key={record.registrationId}>
       <CardHeader>

@@ -1,5 +1,7 @@
+// Discord Webhook: Module level logic for the feature area.
 import { errors } from "./Errors.js";
 
+// Post New Event To Discord: Runs Post new event to discord flow. Inputs: {, organizerName, event. Returns: a function result.
 export const postNewEventToDiscord = async ({ webhookUrl, organizerName, event }) => {
   const url = String(webhookUrl || "").trim();
   if (!url) return;

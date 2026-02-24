@@ -1,9 +1,11 @@
+// Uploaded Responses Service: Controller level logic for the feature area.
 import { errors } from "../../../../utils/Errors.js";
 import {
   uploadBufferToGridFS,
   deleteGridFSFile,
 } from "../../../../utils/gridfs.js";
 
+// Parse Responses Input: Parses responses payload for dynamic custom field submissions. Inputs: rawResponses. Returns: a function result.
 export const parseResponsesInput = (rawResponses) => {
   if (rawResponses === undefined || rawResponses === null || rawResponses === "") {
     return {};
@@ -28,6 +30,7 @@ export const parseResponsesInput = (rawResponses) => {
   throw errors.badRequest("responses must be an object");
 };
 
+// Validate Uploaded File For Field: Validates file response size/type for one dynamic form field. Inputs: field, file. Returns: a function result.
 const validateUploadedFileForField = (field, file) => {
   const allowed = Array.isArray(field.allowedMimeTypes)
     ? field.allowedMimeTypes.filter(Boolean)
@@ -42,6 +45,7 @@ const validateUploadedFileForField = (field, file) => {
   }
 };
 
+// Build File Responses From Upload: Builds file responses from upload for response or export. Inputs: event, files, participantId. Returns: a function result.
 export const buildFileResponsesFromUpload = async (event, files, participantId) => {
   const fileFields = (event.customFormSchema || []).filter((field) => field.type === "file");
   if (fileFields.length === 0 || !Array.isArray(files) || files.length === 0) {
@@ -97,6 +101,7 @@ export const buildFileResponsesFromUpload = async (event, files, participantId) 
   return { fileResponses, uploadedFileIds };
 };
 
+// Rollback Grid Fs Files: Runs Rollback grid fs files flow. Inputs: fileIds. Returns: a function result.
 export const rollbackGridFsFiles = async (fileIds) => {
   const safeIds = [...new Set((fileIds || []).map((id) => String(id)).filter(Boolean))];
   for (const fileId of safeIds) {

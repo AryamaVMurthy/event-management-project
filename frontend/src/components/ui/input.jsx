@@ -1,7 +1,9 @@
+// Input: Module level logic for the feature area.
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Input: renders a styled, ref-forwarding HTML input control.
 const Input = React.forwardRef(({ className, type, ...props }, ref) => {
   return (
     <input

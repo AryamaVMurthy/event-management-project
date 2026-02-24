@@ -1,3 +1,4 @@
+// Details Controller: Controller level logic for the feature area.
 import { Event } from "../../../models/Event.js";
 import { errors } from "../../../utils/Errors.js";
 import {
@@ -8,6 +9,7 @@ import {
   isObjectId,
 } from "../shared/index.js";
 
+// Get Event Details: Builds a normalized event detail object for response clients. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getEventDetails = async (req, res, next) => {
   try {
     if (!isParticipantRole(req.user.role)) {

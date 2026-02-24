@@ -1,5 +1,7 @@
+// Registration Validation: Controller level logic for the feature area.
 import { errors } from "../../../utils/Errors.js";
 
+// Validate Normal Responses: Runs schema-level validation for non-file form responses. Inputs: event, responses. Returns: a function result.
 export const validateNormalResponses = (event, responses) => {
   const fields = event.customFormSchema || [];
   const safeResponses =
@@ -81,6 +83,7 @@ export const validateNormalResponses = (event, responses) => {
   return safeResponses;
 };
 
+// Collect File Ids From Responses: Runs Collect file ids from responses flow. Inputs: responses. Returns: a function result.
 export const collectFileIdsFromResponses = (responses) => {
   if (!responses || typeof responses !== "object") return [];
   const fileIds = [];
@@ -92,6 +95,7 @@ export const collectFileIdsFromResponses = (responses) => {
   return [...new Set(fileIds)];
 };
 
+// Get Registration Files From Responses: Gets registration files from responses from persistence or request payload. Inputs: registration. Returns: a Promise with payload data.
 export const getRegistrationFilesFromResponses = (registration) => {
   const responses = registration?.responses || {};
   const schema = Array.isArray(registration?.eventId?.customFormSchema)

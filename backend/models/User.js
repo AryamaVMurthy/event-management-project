@@ -1,3 +1,4 @@
+// User: Model level logic for the feature area.
 import mongoose from "mongoose";
 import { z } from "zod";
 import { ORGANIZER_ACCOUNT_STATUSES } from "./constants.js";

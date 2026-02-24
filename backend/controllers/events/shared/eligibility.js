@@ -1,9 +1,12 @@
+// Eligibility: Controller level logic for the feature area.
 import { Registration } from "../../../models/Registration.js";
 import { errors } from "../../../utils/Errors.js";
 
+// Is Participant Role: Checks whether a role corresponds to participant variants. Inputs: role. Returns: a function result.
 export const isParticipantRole = (role) =>
   role === "IIIT_PARTICIPANT" || role === "NON_IIIT_PARTICIPANT";
 
+// Get Eligibility Blocked Reason: Evaluates participant eligibility and returns the blocking reason code. Inputs: eligibility, role. Returns: a Promise with payload data.
 export const getEligibilityBlockedReason = (eligibility, role) => {
   if (eligibility === "IIIT_ONLY" && role !== "IIIT_PARTICIPANT") {
     return "NOT_ELIGIBLE";
@@ -14,6 +17,7 @@ export const getEligibilityBlockedReason = (eligibility, role) => {
   return null;
 };
 
+// Get Base Event Summary: Builds a minimal event summary payload for list UIs. Inputs: event. Returns: a Promise with payload data.
 export const getBaseEventSummary = (event) => ({
   id: String(event._id),
   name: event.name,
@@ -34,6 +38,7 @@ export const getBaseEventSummary = (event) => ({
   },
 });
 
+// Append Blocking Status For Event: Builds all blocking reasons that prevent participant registration. Inputs: event, userId, role. Returns: a function result.
 export const appendBlockingStatusForEvent = async (event, userId, role) => {
   const blockedReasons = [];
   const now = new Date();
@@ -93,6 +98,7 @@ export const appendBlockingStatusForEvent = async (event, userId, role) => {
   };
 };
 
+// Assert Event Open: Ensures event status and timing permit registration flow. Inputs: event. Returns: a function result.
 export const assertEventOpen = (event) => {
   if (event.status !== "PUBLISHED" && event.status !== "ONGOING") {
     throw errors.badRequest("Event is not open for registration");
@@ -103,6 +109,7 @@ export const assertEventOpen = (event) => {
   }
 };
 
+// Assert Participant Eligibility: Rejects registrations not matching event eligibility constraints. Inputs: event, role. Returns: a function result.
 export const assertParticipantEligibility = (event, role) => {
   const reason = getEligibilityBlockedReason(event.eligibility, role);
   if (reason) {
@@ -110,6 +117,7 @@ export const assertParticipantEligibility = (event, role) => {
   }
 };
 
+// Assert Capacity Available: Verifies seats/stock capacity has not been exhausted. Inputs: eventId, registrationLimit. Returns: a function result.
 export const assertCapacityAvailable = async (eventId, registrationLimit) => {
   const current = await Registration.countDocuments({
     eventId,
@@ -120,6 +128,7 @@ export const assertCapacityAvailable = async (eventId, registrationLimit) => {
   }
 };
 
+// Assert No Existing Registration: Rejects duplicate registration attempts from the same participant. Inputs: participantId, eventId. Returns: a function result.
 export const assertNoExistingRegistration = async (participantId, eventId) => {
   const existing = await Registration.findOne({ participantId, eventId });
   if (existing) {

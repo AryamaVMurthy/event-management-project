@@ -1,3 +1,4 @@
+// Lifecycle Controller: Controller level logic for the feature area.
 import {
   Event,
   createEventZodSchema,
@@ -16,6 +17,7 @@ import {
   normalizeUpdatePayload,
 } from "../shared/index.js";
 
+// Create Event: Creates event from input data. Inputs: req, res, next. Returns: side effects and response to caller.
 export const createEvent = async (req, res, next) => {
   try {
     const payload = normalizeCreatePayload(req.body, req.user._id);
@@ -27,6 +29,7 @@ export const createEvent = async (req, res, next) => {
   }
 };
 
+// Update Event: Applies partial updates to event fields and persist them. Inputs: req, res, next. Returns: side effects and response to caller.
 export const updateEvent = async (req, res, next) => {
   try {
     const event = await getEventOr404(req.params.id);
@@ -92,6 +95,7 @@ export const updateEvent = async (req, res, next) => {
   }
 };
 
+// Delete Event: Deletes event from persistent storage. Inputs: req, res, next. Returns: side effects and response to caller.
 export const deleteEvent = async (req, res, next) => {
   try {
     const event = await getEventOr404(req.params.id);
@@ -108,6 +112,7 @@ export const deleteEvent = async (req, res, next) => {
   }
 };
 
+// Publish Event: Runs Publish event flow. Inputs: req, res, next. Returns: a function result.
 export const publishEvent = async (req, res, next) => {
   try {
     const event = await getEventOr404(req.params.id);
@@ -139,6 +144,7 @@ export const publishEvent = async (req, res, next) => {
   }
 };
 
+// Start Event: Starts event. Inputs: req, res, next. Returns: a function result.
 export const startEvent = async (req, res, next) => {
   try {
     const event = await getEventOr404(req.params.id);
@@ -156,6 +162,7 @@ export const startEvent = async (req, res, next) => {
   }
 };
 
+// Close Event: Runs Close event flow. Inputs: req, res, next. Returns: a function result.
 export const closeEvent = async (req, res, next) => {
   try {
     const event = await getEventOr404(req.params.id);
@@ -176,6 +183,7 @@ export const closeEvent = async (req, res, next) => {
   }
 };
 
+// Complete Event: Runs Complete event flow. Inputs: req, res, next. Returns: a function result.
 export const completeEvent = async (req, res, next) => {
   try {
     const event = await getEventOr404(req.params.id);

@@ -1,3 +1,4 @@
+// Calendar Controller: Controller level logic for the feature area.
 import mongoose from "mongoose";
 import { Registration } from "../models/Registration.js";
 import { errors } from "../utils/Errors.js";
@@ -7,18 +8,21 @@ const PARTICIPANT_ROLES = new Set(["IIIT_PARTICIPANT", "NON_IIIT_PARTICIPANT"]);
 
 const encode = encodeURIComponent;
 
+// Assert Participant Role: Asserts participant role for safe execution. Inputs: role. Returns: a function result.
 const assertParticipantRole = (role) => {
   if (!PARTICIPANT_ROLES.has(role)) {
     throw errors.forbidden("Only participants can access calendar exports");
   }
 };
 
+// Assert Valid Object Id: Asserts valid object id for safe execution. Inputs: value, fieldName. Returns: a function result.
 const assertValidObjectId = (value, fieldName) => {
   if (!mongoose.Types.ObjectId.isValid(value)) {
     throw errors.badRequest(`Invalid ${fieldName}`);
   }
 };
 
+// Get Owned Registration Or Throw: Loads a registration and verifies participant ownership. Inputs: registrationId, reqUser. Returns: a Promise with payload data.
 const getOwnedRegistrationOrThrow = async (registrationId, reqUser) => {
   assertParticipantRole(reqUser.role);
   assertValidObjectId(registrationId, "registration id");
@@ -47,12 +51,14 @@ const getOwnedRegistrationOrThrow = async (registrationId, reqUser) => {
   return registration;
 };
 
+// Build Event Description: Builds event description for response or export. Inputs: event. Returns: a function result.
 const buildEventDescription = (event) => {
   const organizerName =
     event.organizerId?.organizerName || event.organizerId?.email || "Unknown organizer";
   return `${event.description || ""}\nOrganizer: ${organizerName}`.trim();
 };
 
+// To Calendar Entry: Converts an event/registration pair to a calendar event object. Inputs: registration. Returns: a function result.
 const toCalendarEntry = (registration) => ({
   uid: `registration-${registration._id}@felicity.iiit.ac.in`,
   summary: registration.eventId?.name || "Felicity Event",
@@ -62,6 +68,7 @@ const toCalendarEntry = (registration) => ({
   createdAt: registration.createdAt,
 });
 
+// Parse Reminder Minutes: Converts reminder string into validated number of minutes. Inputs: value. Returns: a function result.
 const parseReminderMinutes = (value) => {
   if (value === undefined || value === null || value === "") {
     return 30;
@@ -73,6 +80,7 @@ const parseReminderMinutes = (value) => {
   return parsed;
 };
 
+// Parse Registration Ids Query: Parses registration IDs from query string into arrays. Inputs: rawValue. Returns: a function result.
 const parseRegistrationIdsQuery = (rawValue) => {
   const value = String(rawValue || "").trim();
   if (!value) {
@@ -88,6 +96,7 @@ const parseRegistrationIdsQuery = (rawValue) => {
   return ids;
 };
 
+// Build Provider Links: Builds provider links for response or export. Inputs: registration. Returns: a function result.
 const buildProviderLinks = (registration) => {
   const event = registration.eventId;
   const title = event.name || "Felicity Event";
@@ -111,6 +120,7 @@ const buildProviderLinks = (registration) => {
   return { google, outlook };
 };
 
+// Get Registration Calendar Ics: Builds ICS export payload for one registration window. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getRegistrationCalendarIcs = async (req, res, next) => {
   try {
     const registration = await getOwnedRegistrationOrThrow(req.params.registrationId, req.user);
@@ -143,6 +153,7 @@ export const getRegistrationCalendarIcs = async (req, res, next) => {
   }
 };
 
+// Get Registration Calendar Links: Builds event calendar links from registration timing metadata. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getRegistrationCalendarLinks = async (req, res, next) => {
   try {
     const registration = await getOwnedRegistrationOrThrow(req.params.registrationId, req.user);
@@ -158,6 +169,7 @@ export const getRegistrationCalendarLinks = async (req, res, next) => {
   }
 };
 
+// Get My Events Calendar Ics: Gets my events calendar ics from persistence or request payload. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getMyEventsCalendarIcs = async (req, res, next) => {
   try {
     assertParticipantRole(req.user.role);

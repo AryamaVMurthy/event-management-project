@@ -1,47 +1,48 @@
-# Felicity Event Management Project
+# Event Management System
 
-Full-stack event platform for participants, organizers, and admin.
+A full-stack event platform for participant registration, organizer workflows, and admin management.
 
-## Stack
-1. Frontend: React + Vite + shadcn/ui
-2. Backend: Node.js (22.x), Express, MongoDB, GridFS, JWT auth
+## Tech Stack
+- Backend: Node.js 22+, Express, MongoDB, JWT
+- Frontend: React, Vite, Tailwind
 
-## Implemented Advanced Feature Set
-This repository implements the selected advanced issues end-to-end:
-1. Organizer password reset request + review workflow (ADV-01, ADV-02)
-2. Calendar export and provider links (single + batch ICS) (ADV-03, ADV-04)
-3. Merchandise payment approval lifecycle
-- Purchase creates pending order
-- Participant uploads payment proof
-- Organizer reviews approve/reject
-- Approval finalizes stock + ticket + email transactionally (ADV-05, ADV-06, ADV-07)
-4. QR attendance scanner flow
-- QR scan endpoint with duplicate/invalid protection
-- Manual override endpoint with reason
-- Live attendance summary + audit logs
-- Organizer scanner UI panel with decoded input/image/camera paths (ADV-08, ADV-09)
+## Prerequisites
+- Node.js 22+
+- npm 10+
+- MongoDB database (Atlas)
 
-## Important Endpoints Added
-1. `/api/calendar/registrations/:registrationId.ics`
-2. `/api/calendar/registrations/:registrationId/links`
-3. `/api/calendar/my-events.ics`
-4. `/api/events/registrations/:registrationId/payment-proof`
-5. `/api/events/organizer/events/:id/merch-orders`
-6. `/api/events/organizer/events/:id/merch-orders/:registrationId/review`
-7. `/api/events/organizer/events/:id/attendance/scan`
-8. `/api/events/organizer/events/:id/attendance/override`
-9. `/api/events/organizer/events/:id/attendance/live`
-
-## Run Locally
+## Local Setup
 1. Backend
-```bash
-cd backend
-npm install
-npm start
-```
+   - `cd backend`
+   - Copy `.env.example` to `.env` and set values
+   - `npm install`
+   - `npm start`
+
 2. Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
+   - `cd frontend`
+   - Copy `.env.example` to `.env` if present
+   - `npm install`
+   - `npm run dev`
+
+## Environment (Backend)
+Set the following in `backend/.env`:
+- `PORT`
+- `MONGO_URI`
+- `JWT_SECRET`, `JWT_EXPIRES_IN`
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+- `NODE_ENV`
+- `FRONTEND_URL`
+- SMTP settings (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`)
+- `MAX_UPLOAD_MB`
+- `EMAIL_FORCE_FAIL_SEND`
+- Optional: `EMAIL_MODE=disabled` to run without outbound SMTP
+
+## Project Layout
+- `backend/` server, routes, controllers, models
+- `frontend/` UI pages and static assets
+- `.env.example` and `backend/.env.example` for configuration templates
+
+## Deployment
+- Backend deploy target: Render web service
+- Frontend deploy target: Vercel
+- Ensure `FRONTEND_URL` (backend) and API base URL (frontend) exactly match deployed origins (no trailing slashes)

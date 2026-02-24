@@ -1,3 +1,4 @@
+// User Routes: Route level logic for the feature area.
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import {

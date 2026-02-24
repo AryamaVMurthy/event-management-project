@@ -1,3 +1,4 @@
+// Eslint.config: Module level logic for the feature area.
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

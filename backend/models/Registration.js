@@ -1,3 +1,4 @@
+// Registration: Model level logic for the feature area.
 import mongoose from "mongoose";
 import { z } from "zod";
 import { MERCH_PAYMENT_STATUSES, REGISTRATION_STATUSES } from "./constants.js";

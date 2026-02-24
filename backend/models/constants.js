@@ -1,3 +1,4 @@
+// Constants: Model level logic for the feature area.
 export const EVENT_TYPES = ["NORMAL", "MERCHANDISE"];
 
 export const EVENT_STATUSES = [

@@ -1,3 +1,4 @@
+// Organizer Profile: Module level logic for the feature area.
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import OrganizerNavbar from "../components/OrganizerNavbar";
@@ -7,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// Organizer Profile: Runs Organizer profile flow. Inputs: none. Returns: a function result.
 export default function OrganizerProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -27,6 +29,7 @@ export default function OrganizerProfile() {
   });
 
   useEffect(() => {
+    // Load: Loads the requested resources from API or cache. Inputs: none. Returns: a Promise with payload data.
     const load = async () => {
       try {
         const [meRes, catRes, resetRes] = await Promise.all([
@@ -55,6 +58,7 @@ export default function OrganizerProfile() {
     load();
   }, []);
 
+  // Save: Saves changes to the data store. Inputs: event. Returns: side effects and response to caller.
   const save = async (event) => {
     event.preventDefault();
     setSaving(true);
@@ -76,6 +80,7 @@ export default function OrganizerProfile() {
     }
   };
 
+  // Create Reset Request: Creates reset request from input data. Inputs: event. Returns: side effects and response to caller.
   const createResetRequest = async (event) => {
     event.preventDefault();
     setRequestingReset(true);

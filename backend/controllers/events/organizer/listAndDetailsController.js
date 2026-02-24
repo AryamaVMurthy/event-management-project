@@ -1,3 +1,4 @@
+// List And Details Controller: Controller level logic for the feature area.
 import { Event } from "../../../models/Event.js";
 import { Registration } from "../../../models/Registration.js";
 import { errors } from "../../../utils/Errors.js";
@@ -7,6 +8,7 @@ import {
   getEventForOrganizerOrAdminOr404,
 } from "../shared/index.js";
 
+// Get Organizer Events: Loads organizer-created events for management screens. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getOrganizerEvents = async (req, res, next) => {
   try {
     const isAdmin = req.user.role === "admin";
@@ -88,6 +90,7 @@ export const getOrganizerEvents = async (req, res, next) => {
   }
 };
 
+// Get Organizer Event Details: Returns composed event details used by organizer screens. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getOrganizerEventDetails = async (req, res, next) => {
   try {
     const event = await getEventForOrganizerOrAdminOr404(req.params.id, req.user);

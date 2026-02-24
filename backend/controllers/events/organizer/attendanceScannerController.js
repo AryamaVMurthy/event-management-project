@@ -1,3 +1,4 @@
+// Attendance Scanner Controller: Controller level logic for the feature area.
 import { AttendanceAuditLog } from "../../../models/AttendanceAuditLog.js";
 import { Registration } from "../../../models/Registration.js";
 import { Ticket } from "../../../models/Ticket.js";
@@ -8,6 +9,7 @@ import {
   isObjectId,
 } from "../shared/index.js";
 
+// Parse Qr Payload: Parses raw scanner payload into a typed scan object. Inputs: rawValue. Returns: a function result.
 const parseQrPayload = (rawValue) => {
   if (!rawValue) {
     throw errors.badRequest("qrPayload is required");
@@ -53,6 +55,7 @@ const writeAuditLog = async ({
   });
 };
 
+// Build Live Summary: Builds a compact runtime attendance summary object. Inputs: eventId. Returns: a function result.
 const buildLiveSummary = async (eventId) => {
   const [totalRegistrations, attendedCount, recentLogs] = await Promise.all([
     Registration.countDocuments({ eventId }),
@@ -84,6 +87,7 @@ const buildLiveSummary = async (eventId) => {
   };
 };
 
+// Scan Attendance By Qr: Parses and applies a QR attendance scan payload. Inputs: req, res, next. Returns: a function result.
 export const scanAttendanceByQr = async (req, res, next) => {
   try {
     const event = await getEventForOrganizerOrAdminOr404(req.params.id, req.user);
@@ -195,6 +199,7 @@ export const scanAttendanceByQr = async (req, res, next) => {
   }
 };
 
+// Manual Attendance Override: Runs Manual attendance override flow. Inputs: req, res, next. Returns: a function result.
 export const manualAttendanceOverride = async (req, res, next) => {
   try {
     const event = await getEventForOrganizerOrAdminOr404(req.params.id, req.user);
@@ -259,6 +264,7 @@ export const manualAttendanceOverride = async (req, res, next) => {
   }
 };
 
+// Get Live Attendance Summary: Gets live attendance summary from persistence or request payload. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getLiveAttendanceSummary = async (req, res, next) => {
   try {
     const event = await getEventForOrganizerOrAdminOr404(req.params.id, req.user);

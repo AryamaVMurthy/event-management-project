@@ -1,3 +1,4 @@
+// Separator: Module level logic for the feature area.
 "use client"
 
 import * as React from "react"

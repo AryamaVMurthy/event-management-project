@@ -1,7 +1,9 @@
+// Preferences Controller: Controller level logic for the feature area.
 import { User, Interest, Organizer } from "../../models/User.js";
 import { errors } from "../../utils/Errors.js";
 import { toUniqueIdStrings } from "./utils.js";
 
+// Update Interests: Persists selected interests for the current user. Inputs: req, res, next. Returns: side effects and response to caller.
 export const updateInterests = async (req, res, next) => {
   try {
     const user = req.user;
@@ -47,6 +49,7 @@ export const updateInterests = async (req, res, next) => {
   }
 };
 
+// Update Followed Clubs: Persists selected followed clubs for the current user. Inputs: req, res, next. Returns: side effects and response to caller.
 export const updateFollowedClubs = async (req, res, next) => {
   try {
     const user = req.user;

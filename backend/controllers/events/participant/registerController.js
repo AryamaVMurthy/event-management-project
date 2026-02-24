@@ -1,3 +1,4 @@
+// Register Controller: Controller level logic for the feature area.
 import { Registration } from "../../../models/Registration.js";
 import { Ticket } from "../../../models/Ticket.js";
 import { errors } from "../../../utils/Errors.js";
@@ -19,6 +20,7 @@ import {
 } from "./services/uploadedResponsesService.js";
 import { sendTicketEmailStrict } from "./services/ticketEmailService.js";
 
+// Register For Event: Validates and stores a participant registration request. Inputs: req, res, next. Returns: side effects and response to caller.
 export const registerForEvent = async (req, res, next) => {
   let uploadedFileIds = [];
   try {

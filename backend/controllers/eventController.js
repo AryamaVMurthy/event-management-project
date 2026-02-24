@@ -1,3 +1,4 @@
+// Event Controller: Controller level logic for the feature area.
 export {
   listEvents,
   getEventDetails,

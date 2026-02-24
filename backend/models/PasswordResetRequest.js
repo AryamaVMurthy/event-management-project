@@ -1,3 +1,4 @@
+// Password Reset Request: Model level logic for the feature area.
 import mongoose from "mongoose";
 import { z } from "zod";
 import { PASSWORD_RESET_STATUSES } from "./constants.js";

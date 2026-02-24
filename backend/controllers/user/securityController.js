@@ -1,7 +1,9 @@
+// Security Controller: Controller level logic for the feature area.
 import bcrypt from "bcryptjs";
 import { User } from "../../models/User.js";
 import { errors } from "../../utils/Errors.js";
 
+// Change Password: Runs Change password flow. Inputs: req, res, next. Returns: a function result.
 export const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;

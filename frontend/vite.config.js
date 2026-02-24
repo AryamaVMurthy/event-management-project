@@ -1,3 +1,4 @@
+// Vite.config: Module level logic for the feature area.
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';

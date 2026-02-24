@@ -1,3 +1,4 @@
+// Browse Events: Module level logic for the feature area.
 import { useEffect, useMemo, useState } from "react";
 import api from "../lib/api";
 import ParticipantNavbar from "../components/ParticipantNavbar";
@@ -35,6 +36,7 @@ const blockedReasonLabels = {
   STOCK_EXHAUSTED: "Stock is exhausted",
 };
 
+// To Local Date Time: Converts UTC or ISO date values to local date-time text. Inputs: value. Returns: a function result.
 const toLocalDateTime = (value) => {
   if (!value) return "-";
   try {
@@ -44,6 +46,7 @@ const toLocalDateTime = (value) => {
   }
 };
 
+// Browse Events: Runs Browse events flow. Inputs: none. Returns: a function result.
 export default function BrowseEvents() {
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [events, setEvents] = useState([]);
@@ -116,6 +119,7 @@ export default function BrowseEvents() {
     }
   }, [selectedItem, selectedVariantId]);
 
+  // Load Events: Loads paginated/bounded event data from the server. Inputs: nextFilters. Returns: a function result.
   const loadEvents = async (nextFilters = filters) => {
     setLoadingEvents(true);
     setError("");
@@ -156,6 +160,7 @@ export default function BrowseEvents() {
     }
   };
 
+  // Load My Merch Registrations: Loads my merch registrations from API or cache. Inputs: none. Returns: a function result.
   const loadMyMerchRegistrations = async () => {
     try {
       const response = await api.get("/user/my-events");
@@ -182,6 +187,7 @@ export default function BrowseEvents() {
     }
   };
 
+  // Load Payment Proof Meta: Loads payment proof meta from API or cache. Inputs: registrationId. Returns: a function result.
   const loadPaymentProofMeta = async (registrationId) => {
     if (!registrationId) return;
     setLoadingPaymentProofMeta(true);
@@ -205,6 +211,7 @@ export default function BrowseEvents() {
     }
   };
 
+  // Load Event Details: Loads a single event by id including registration and status context. Inputs: eventId. Returns: a function result.
   const loadEventDetails = async (eventId) => {
     if (!eventId) {
       setEventDetails(null);
@@ -259,16 +266,19 @@ export default function BrowseEvents() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMerchRegistration?.registrationId]);
 
+  // On Filter Input: Runs On filter input flow. Inputs: event. Returns: a function result.
   const onFilterInput = (event) => {
     const { name, value } = event.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Apply Filters: Applies filters to current state. Inputs: event. Returns: a function result.
   const applyFilters = async (event) => {
     event.preventDefault();
     await loadEvents(filters);
   };
 
+  // Clear Filters: Clears filters safely. Inputs: none. Returns: a function result.
   const clearFilters = async () => {
     const cleared = {
       search: "",
@@ -282,14 +292,17 @@ export default function BrowseEvents() {
     await loadEvents(cleared);
   };
 
+  // Set Radio Response: Sets radio response in local/module state. Inputs: fieldId, value. Returns: side effects and response to caller.
   const setRadioResponse = (fieldId, value) => {
     setResponses((prev) => ({ ...prev, [fieldId]: value }));
   };
 
+  // Set Textarea Response: Sets textarea response in local/module state. Inputs: fieldId, value. Returns: side effects and response to caller.
   const setTextareaResponse = (fieldId, value) => {
     setResponses((prev) => ({ ...prev, [fieldId]: value }));
   };
 
+  // Set Checkbox Response: Sets checkbox response in local/module state. Inputs: fieldId, option, checked. Returns: side effects and response to caller.
   const setCheckboxResponse = (fieldId, option, checked) => {
     setResponses((prev) => {
       const current = Array.isArray(prev[fieldId]) ? prev[fieldId] : [];
@@ -298,6 +311,7 @@ export default function BrowseEvents() {
     });
   };
 
+  // Submit Normal Registration: Builds normal registration payload and submits it. Inputs: event. Returns: side effects and response to caller.
   const submitNormalRegistration = async (event) => {
     event.preventDefault();
     if (!eventDetails) return;
@@ -344,6 +358,7 @@ export default function BrowseEvents() {
     }
   };
 
+  // Submit Merch Purchase: Builds and submits merchandise purchase payload including items selected. Inputs: event. Returns: side effects and response to caller.
   const submitMerchPurchase = async (event) => {
     event.preventDefault();
     if (!eventDetails) return;
@@ -381,6 +396,7 @@ export default function BrowseEvents() {
     }
   };
 
+  // Submit Payment Proof: Uploads and links a payment proof image to a registration. Inputs: event. Returns: side effects and response to caller.
   const submitPaymentProof = async (event) => {
     event.preventDefault();
     if (!activeMerchRegistration?.registrationId) {
@@ -417,6 +433,7 @@ export default function BrowseEvents() {
     }
   };
 
+  // Download Payment Proof: Downloads payment proof media for review workflows. Inputs: registrationId, fileName. Returns: a function result.
   const downloadPaymentProof = async (registrationId, fileName) => {
     try {
       const response = await api.get(

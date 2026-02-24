@@ -1,6 +1,8 @@
+// System Controller: Controller level logic for the feature area.
 import { getMailerStatus } from "../utils/mailer.js";
 
 // GET /api/system/email-health
+// Get Email Health: Gets email health from persistence or request payload. Inputs: req, res, next. Returns: a Promise with payload data.
 export const getEmailHealth = async (req, res, next) => {
   try {
     const status = getMailerStatus();

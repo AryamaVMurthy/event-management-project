@@ -1,3 +1,4 @@
+// Index: Model level logic for the feature area.
 export * from "./constants.js";
 export * from "./User.js";
 export * from "./Event.js";
